@@ -825,7 +825,7 @@ async function loadAll() {
 
 // ── NORMALIZE ──
 function cd(d){ return d?String(d).slice(0,10):''; }
-function normalizeProject(r){ return { id:String(r.id||''), client:String(r.client||''), name:String(r.name||''), qt:String(r.qt||''), total:parseFloat(r.total||0), status:String(r.status||'進行中'), note:String(r.note||'') }; }
+function normalizeProject(r){ return { id:String(r.id||''), client:String(r.client||''), name:String(r.name||''), qt:String(r.qt||r.QT||''), total:parseFloat(r.total||r.TOTAL||r['Quotation 總額']||0), status:String(r.status||r.STATUS||'進行中'), note:String(r.note||r.NOTE||'') }; }
 function normalizeIncome(r){ return { id:String(r.id||''), date:cd(r.date), amount:parseFloat(r.amount||0), client:String(r.client||''), projectId:String(r.projectId||''), paymentType:String(r.paymentType||'全數收入'), type:String(r.type||''), qt:String(r.qt||''), invoice:String(r.invoice||''), acct:String(r.acct||'Hang Seng'), preinc:String(r.preinc||'否'), recstatus:String(r.recstatus||'待收款'), note:String(r.note||'') }; }
 function normalizeVendor(r){ return { 
     id:String(r.id||''), projectId:String(r.projectId||''), name:String(r.name||''), type:String(r.type||''), qt:String(r.qt||''),
@@ -893,7 +893,7 @@ function populateOpsFilter(){
 // ── OVERVIEW ──
 function renderOverview(){
   const tI=D.income.reduce((s,r)=>s+r.amount,0);
-  const tV=D.vendors.reduce((s,r)=>s+(r.depAmount||0)+(r.balAmount||0),0);
+  const tV=D.vendors.reduce((s,r)=>s+(r.total>0?r.total:(r.depAmount||0)+(r.balAmount||0)),0);
   const tPE=D.projectExpenses.reduce((s,r)=>s+r.amount,0);
   const tOps=D.opsExpenses.reduce((s,r)=>s+r.amount,0);
   const tE=tV+tPE+tOps;
@@ -915,7 +915,7 @@ function renderOverview(){
 
   // Unpaid vendors
   const unpaidV=D.vendors.filter(r=>r.depStatus==='待付'||r.balStatus==='待付');
-  const unpaidVAmt=D.vendors.reduce((s,r)=>s+(r.depStatus==='待付'?r.depAmount:0)+(r.balStatus==='待付'?r.balAmount:0),0);
+  const unpaidVAmt=D.vendors.reduce((s,r)=>{ const depUnpaid=r.depStatus==='待付'?(r.depAmount||0):0; const balUnpaid=r.balStatus==='待付'?(r.balAmount||0):0; return s+depUnpaid+balUnpaid; },0);
   document.getElementById('ov-unpay').textContent=fmtHKD(unpaidVAmt);
   document.getElementById('ov-unpay-sub').textContent=unpaidV.length+' 個Vendor待付';
 
@@ -938,7 +938,7 @@ function renderOverview(){
   // Category breakdown (ops only)
   const cats={};
   D.opsExpenses.forEach(r=>{ const c=catShort(r.category); cats[c]=(cats[c]||0)+r.amount; });
-  D.vendors.forEach(r=>{ cats['第三方Vendor']=(cats['第三方Vendor']||0)+(r.depAmount||0)+(r.balAmount||0); });
+  D.vendors.forEach(r=>{ cats['第三方Vendor']=(cats['第三方Vendor']||0)+(r.total>0?r.total:(r.depAmount||0)+(r.balAmount||0)); });
   D.projectExpenses.forEach(r=>{ const c=catShort(r.category); cats[c]=(cats[c]||0)+r.amount; });
   const st=Object.entries(cats).sort((a,b)=>b[1]-a[1]), mt=st[0]?.[1]||1;
   document.getElementById('ov-cats').innerHTML=st.length
@@ -974,7 +974,7 @@ function renderProjects(){
     const allInc2=D.income.filter(r=>r.projectId===p.id);
     const inc=allInc2.filter(r=>r.recstatus==='已收款').reduce((s,r)=>s+r.amount,0);
     const pend=allInc2.filter(r=>r.recstatus!=='已收款').reduce((s,r)=>s+r.amount,0);
-    const vexp=D.vendors.filter(r=>r.projectId===p.id).reduce((s,r)=>s+(r.depAmount||0)+(r.balAmount||0),0);
+    const vexp=D.vendors.filter(r=>r.projectId===p.id).reduce((s,r)=>s+(r.total>0?r.total:(r.depAmount||0)+(r.balAmount||0)),0);
     const misc=D.projectExpenses.filter(r=>r.projectId===p.id).reduce((s,r)=>s+r.amount,0);
     const allIncTotal=allInc2.reduce((s,r)=>s+r.amount,0);
     const net=allIncTotal-vexp-misc;
@@ -1016,7 +1016,7 @@ function renderProjDetail(){
   const received=allInc.filter(r=>r.recstatus==='已收款').reduce((s,r)=>s+r.amount,0);
   const pending=allInc.filter(r=>r.recstatus!=='已收款').reduce((s,r)=>s+r.amount,0);
   const inc=allInc.reduce((s,r)=>s+r.amount,0);
-  const vexp=D.vendors.filter(r=>r.projectId===id).reduce((s,r)=>s+(r.depAmount||0)+(r.balAmount||0),0);
+  const vexp=D.vendors.filter(r=>r.projectId===id).reduce((s,r)=>s+(r.total>0?r.total:(r.depAmount||0)+(r.balAmount||0)),0);
   const misc=D.projectExpenses.filter(r=>r.projectId===id).reduce((s,r)=>s+r.amount,0);
   const net=inc-vexp-misc;
   const qtTotal=p?p.total:0;
@@ -1024,6 +1024,7 @@ function renderProjDetail(){
   document.getElementById('pd-inc').textContent=fmtHKD(received);
   document.getElementById('pd-pending').textContent=fmtHKD(pending);
   document.getElementById('pd-vexp').textContent=fmtHKD(vexp);
+  // Show vendor total includes committed amounts
   document.getElementById('pd-misc').textContent=fmtHKD(misc);
   document.getElementById('pd-net').textContent=fmtHKD(net);
   document.getElementById('pd-net').className='pnl-val '+(net>=0?'amint':'amred');
