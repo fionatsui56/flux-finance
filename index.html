@@ -1086,7 +1086,10 @@ function renderProjDetail(){
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
           <div style="font-size:12px;color:var(--dim)">${r.note||''}</div>
-          <button class="btn-del-sm" onclick="deleteVendor('${r.id}')">刪除</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn-edit-sm" onclick="openEditVendor('${r.id}')">編輯</button>
+            <button class="btn-del-sm" onclick="deleteVendor('${r.id}')">刪除</button>
+          </div>
         </div>
       </div>`;
     }).join('')
@@ -1418,6 +1421,76 @@ function exportCSV(){
   a.download='FLUX_WORKS_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
 }
 
+
+// ── EDIT VENDOR ──
+let editingVendorId = null;
+
+function openEditVendor(id) {
+  const r = D.vendors.find(x => x.id === id);
+  if (!r) return;
+  editingVendorId = id;
+  document.getElementById('ev-name').value      = r.name || '';
+  document.getElementById('ev-type').value      = r.type || '其他外判';
+  document.getElementById('ev-qt').value        = r.qt || '';
+  document.getElementById('ev-total').value     = r.total || '';
+  document.getElementById('ev-dep-inv').value   = r.depInv || '';
+  document.getElementById('ev-dep-amount').value= r.depAmount || '';
+  document.getElementById('ev-dep-deadline').value = r.depDeadline || '';
+  document.getElementById('ev-dep-status').value= r.depStatus || '待付';
+  document.getElementById('ev-dep-date').value  = r.depDate || '';
+  document.getElementById('ev-dep-pay').value   = r.depPay || 'Aspire';
+  document.getElementById('ev-bal-inv').value   = r.balInv || '';
+  document.getElementById('ev-bal-amount').value= r.balAmount || '';
+  document.getElementById('ev-bal-deadline').value = r.balDeadline || '';
+  document.getElementById('ev-bal-status').value= r.balStatus || '待付';
+  document.getElementById('ev-bal-date').value  = r.balDate || '';
+  document.getElementById('ev-bal-pay').value   = r.balPay || 'Aspire';
+  document.getElementById('ev-note').value      = r.note || '';
+  openModal('modalEditVendor');
+}
+
+async function saveEditVendor() {
+  const id = editingVendorId;
+  const r = D.vendors.find(x => x.id === id);
+  const updated = {
+    id,
+    projectId: r.projectId,
+    name:       document.getElementById('ev-name').value.trim(),
+    type:       document.getElementById('ev-type').value,
+    qt:         document.getElementById('ev-qt').value.trim(),
+    total:      parseFloat(document.getElementById('ev-total').value || 0),
+    depInv:     document.getElementById('ev-dep-inv').value.trim(),
+    depAmount:  parseFloat(document.getElementById('ev-dep-amount').value || 0),
+    depDeadline:document.getElementById('ev-dep-deadline').value,
+    depStatus:  document.getElementById('ev-dep-status').value,
+    depDate:    document.getElementById('ev-dep-date').value,
+    depPay:     document.getElementById('ev-dep-pay').value,
+    balInv:     document.getElementById('ev-bal-inv').value.trim(),
+    balAmount:  parseFloat(document.getElementById('ev-bal-amount').value || 0),
+    balDeadline:document.getElementById('ev-bal-deadline').value,
+    balStatus:  document.getElementById('ev-bal-status').value,
+    balDate:    document.getElementById('ev-bal-date').value,
+    balPay:     document.getElementById('ev-bal-pay').value,
+    note:       document.getElementById('ev-note').value.trim(),
+  };
+  const btn = document.getElementById('btnSaveEV');
+  btn.disabled = true; btn.textContent = '儲存中...';
+  setSyncStatus('busy', '⟳ 儲存中...');
+  try {
+    const res = await apiCall({ action: 'editVendor', id, data: JSON.stringify(updated) });
+    if (res.success) {
+      const idx = D.vendors.findIndex(x => x.id === id);
+      if (idx > -1) D.vendors[idx] = normalizeVendor(updated);
+      setSyncStatus('ok', '● 已同步');
+      closeModal('modalEditVendor');
+      renderProjDetail();
+      renderProjects();
+      renderOverview();
+    } else { setSyncStatus('err', '✕ 失敗'); alert('儲存失敗，請再試'); }
+  } catch(e) { setSyncStatus('err', '✕ 網絡錯誤'); alert('網絡錯誤，請再試'); }
+  btn.disabled = false; btn.textContent = '儲存更改';
+}
+
 // ── MODAL ──
 function openModal(id){ document.getElementById(id).classList.add('on'); }
 function closeModal(id){ document.getElementById(id).classList.remove('on'); }
@@ -1457,5 +1530,84 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('loginPw').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
 });
 </script>
+<!-- EDIT VENDOR MODAL -->
+<div class="modal-bg" id="modalEditVendor">
+  <div class="modal">
+    <div class="modal-title">✏️ 編輯 Vendor 支出</div>
+    <div class="fg fg2">
+      <div class="f"><label>Vendor 名稱</label><input type="text" id="ev-name"></div>
+      <div class="f"><label>服務類型</label>
+        <select id="ev-type">
+          <option value="攝影／攝錄">攝影／攝錄</option>
+          <option value="設計外判">設計外判</option>
+          <option value="印刷製作">印刷製作</option>
+          <option value="活動製作">活動製作</option>
+          <option value="媒體採購">媒體採購</option>
+          <option value="PR服務">PR 服務</option>
+          <option value="其他外判">其他外判</option>
+        </select>
+      </div>
+      <div class="f"><label>Vendor Quotation No.</label><input type="text" id="ev-qt"></div>
+      <div class="f"><label>Vendor 總金額 (HKD)</label><input type="number" id="ev-total" min="0" step="0.01"></div>
+    </div>
+
+    <div style="background:var(--s2);border-radius:10px;padding:16px;margin:12px 0">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">DEPOSIT</div>
+      <div class="fg fg2">
+        <div class="f"><label>Deposit Invoice No.</label><input type="text" id="ev-dep-inv"></div>
+        <div class="f"><label>Deposit 金額 (HKD)</label><input type="number" id="ev-dep-amount" min="0" step="0.01"></div>
+        <div class="f"><label>付款 Deadline</label><input type="date" id="ev-dep-deadline"></div>
+        <div class="f"><label>付款狀態</label>
+          <select id="ev-dep-status">
+            <option value="待付">🔴 待付</option>
+            <option value="已付">🟢 已付</option>
+          </select>
+        </div>
+        <div class="f"><label>付款日期（已付時填）</label><input type="date" id="ev-dep-date"></div>
+        <div class="f"><label>付款方式</label>
+          <select id="ev-dep-pay">
+            <option value="Aspire">Aspire</option>
+            <option value="其他信用卡">其他信用卡</option>
+            <option value="轉數快">轉數快</option>
+            <option value="Hang Seng">Hang Seng</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--s2);border-radius:10px;padding:16px;margin:12px 0">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">BALANCE</div>
+      <div class="fg fg2">
+        <div class="f"><label>Balance Invoice No.</label><input type="text" id="ev-bal-inv"></div>
+        <div class="f"><label>Balance 金額 (HKD)</label><input type="number" id="ev-bal-amount" min="0" step="0.01"></div>
+        <div class="f"><label>付款 Deadline</label><input type="date" id="ev-bal-deadline"></div>
+        <div class="f"><label>付款狀態</label>
+          <select id="ev-bal-status">
+            <option value="待付">🔴 待付</option>
+            <option value="已付">🟢 已付</option>
+          </select>
+        </div>
+        <div class="f"><label>付款日期（已付時填）</label><input type="date" id="ev-bal-date"></div>
+        <div class="f"><label>付款方式</label>
+          <select id="ev-bal-pay">
+            <option value="Aspire">Aspire</option>
+            <option value="其他信用卡">其他信用卡</option>
+            <option value="轉數快">轉數快</option>
+            <option value="Hang Seng">Hang Seng</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg fg2">
+      <div class="f full"><label>備註</label><textarea id="ev-note"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modalEditVendor')">取消</button>
+      <button class="btn btn-primary" id="btnSaveEV" onclick="saveEditVendor()">儲存更改</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
