@@ -831,8 +831,8 @@ async function apiCall(params) {
 async function loadAll() {
   setSyncStatus('busy','⟳ 同步中...');
   try {
-    const r=await apiCall({action:'getAll'});
-    if(r.success){
+    const rAll=await apiCall({action:'getAll'});
+    if(rAll.success){
       D.projects        =(r.projects||[]).map(normalizeProject);
       D.income          =(r.income||[]).map(normalizeIncome);
       D.vendors         =(r.vendors||[]).map(normalizeVendor);
@@ -1199,8 +1199,8 @@ function renderProjDetail(){
 async function deleteProject(id){
   if(!confirm('確認刪除此 Project？相關收入及支出記錄不會刪除。')) return;
   setSyncStatus('busy','⟳ 刪除中...');
-  const r=await apiCall({action:'deleteProject',id});
-  if(r.success){ D.projects=D.projects.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); renderProjects(); renderOverview(); }
+  const rDP=await apiCall({action:'deleteProject',id});
+  if(rDP.success){ D.projects=D.projects.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); renderProjects(); renderOverview(); }
   else setSyncStatus('err','✕ 失敗');
 }
 
@@ -1259,8 +1259,8 @@ function clearInForm(){ ['in-date','in-amount','in-client','in-qt','in-inv','in-
 async function deleteIncome(id){
   if(!confirm('確認刪除？')) return;
   setSyncStatus('busy','⟳ 刪除中...');
-  const r=await apiCall({action:'deleteIncome',id});
-  if(r.success){ D.income=D.income.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); populateInFilters(); renderIncome(); renderOverview(); if(activeProjId) renderProjDetail(); }
+  const rDI=await apiCall({action:'deleteIncome',id});
+  if(rDI.success){ D.income=D.income.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); populateInFilters(); renderIncome(); renderOverview(); if(activeProjId) renderProjDetail(); }
   else setSyncStatus('err','✕ 失敗');
 }
 
@@ -1315,8 +1315,8 @@ async function saveEditIncome(){
   };
   const btn=document.getElementById('btnSaveEI'); btn.disabled=true; btn.textContent='儲存中...';
   setSyncStatus('busy','⟳ 儲存中...');
-  const r=await apiCall({action:'editIncome',id,data:JSON.stringify(updated)});
-  if(r.success){ const idx=D.income.findIndex(x=>x.id===id); if(idx>-1) D.income[idx]=updated; setSyncStatus('ok','● 已同步'); closeModal('modalEditIncome'); populateInFilters(); renderIncome(); renderOverview(); }
+  const resEI=await apiCall({action:'editIncome',id,data:JSON.stringify(updated)});
+  if(resEI.success){ const idx=D.income.findIndex(x=>x.id===id); if(idx>-1) D.income[idx]=updated; setSyncStatus('ok','● 已同步'); closeModal('modalEditIncome'); populateInFilters(); renderIncome(); renderOverview(); }
   else { setSyncStatus('err','✕ 失敗'); alert('儲存失敗'); }
   btn.disabled=false; btn.textContent='儲存更改';
 }
@@ -1403,8 +1403,8 @@ function clearOpsForm(){ ['ops-date','ops-amount','ops-rec','ops-note'].forEach(
 async function deleteOpsExpense(id){
   if(!confirm('確認刪除？')) return;
   setSyncStatus('busy','⟳ 刪除中...');
-  const r=await apiCall({action:'deleteOpsExpense',id});
-  if(r.success){ D.opsExpenses=D.opsExpenses.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); populateOpsFilter(); renderOps(); renderOverview(); }
+  const rDO=await apiCall({action:'deleteOpsExpense',id});
+  if(rDO.success){ D.opsExpenses=D.opsExpenses.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); populateOpsFilter(); renderOps(); renderOverview(); }
   else setSyncStatus('err','✕ 失敗');
 }
 
@@ -1426,8 +1426,8 @@ async function saveEditOps(){
   const updated={ id, date:document.getElementById('eo-date').value, amount:parseFloat(document.getElementById('eo-amount').value), category:document.getElementById('eo-cat').value, payment:document.getElementById('eo-pay').value, receipt:document.getElementById('eo-rec').value.trim(), preinc:document.getElementById('eo-preinc').value, note:document.getElementById('eo-note').value.trim() };
   const btn=document.getElementById('btnSaveEO'); btn.disabled=true; btn.textContent='儲存中...';
   setSyncStatus('busy','⟳ 儲存中...');
-  const r=await apiCall({action:'editOpsExpense',id,data:JSON.stringify(updated)});
-  if(r.success){ const idx=D.opsExpenses.findIndex(x=>x.id===id); if(idx>-1) D.opsExpenses[idx]=updated; setSyncStatus('ok','● 已同步'); closeModal('modalEditOps'); populateOpsFilter(); renderOps(); renderOverview(); }
+  const res3=await apiCall({action:'editOpsExpense',id,data:JSON.stringify(updated)});
+  if(res3.success){ const idx=D.opsExpenses.findIndex(x=>x.id===id); if(idx>-1) D.opsExpenses[idx]=updated; setSyncStatus('ok','● 已同步'); closeModal('modalEditOps'); populateOpsFilter(); renderOps(); renderOverview(); }
   else { setSyncStatus('err','✕ 失敗'); alert('儲存失敗'); }
   btn.disabled=false; btn.textContent='儲存更改';
 }
@@ -1494,8 +1494,8 @@ function saveVendor(){
 async function deleteVendor(id){
   if(!confirm('確認刪除？')) return;
   setSyncStatus('busy','⟳ 刪除中...');
-  const r=await apiCall({action:'deleteVendor',id});
-  if(r.success){ D.vendors=D.vendors.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); renderProjDetail(); renderProjects(); renderOverview(); }
+  const rDV=await apiCall({action:'deleteVendor',id});
+  if(rDV.success){ D.vendors=D.vendors.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); renderProjDetail(); renderProjects(); renderOverview(); }
   else setSyncStatus('err','✕ 失敗');
 }
 
@@ -1519,8 +1519,8 @@ function saveMisc(){
 async function deleteMisc(id){
   if(!confirm('確認刪除？')) return;
   setSyncStatus('busy','⟳ 刪除中...');
-  const r=await apiCall({action:'deleteProjectExpense',id});
-  if(r.success){ D.projectExpenses=D.projectExpenses.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); renderProjDetail(); renderProjects(); renderOverview(); }
+  const rDPE=await apiCall({action:'deleteProjectExpense',id});
+  if(rDPE.success){ D.projectExpenses=D.projectExpenses.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); renderProjDetail(); renderProjects(); renderOverview(); }
   else setSyncStatus('err','✕ 失敗');
 }
 
@@ -1643,8 +1643,8 @@ async function saveEditVendor() {
   btn.disabled = true; btn.textContent = '儲存中...';
   setSyncStatus('busy', '⟳ 儲存中...');
   try {
-    const res = await apiCall({ action: 'editVendor', id, data: JSON.stringify(updated) });
-    if (res.success) {
+    const resEV = await apiCall({ action: 'editVendor', id, data: JSON.stringify(updated) });
+    if (resEV.success) {
       const idx = D.vendors.findIndex(x => x.id === id);
       if (idx > -1) D.vendors[idx] = normalizeVendor(updated);
       setSyncStatus('ok', '● 已同步');
