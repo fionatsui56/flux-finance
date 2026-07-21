@@ -848,33 +848,48 @@ async function loadAll() {
 function cd(d){ return d?String(d).slice(0,10):''; }
 function normalizeProject(r){ return { id:String(r.id||''), client:String(r.client||''), name:String(r.name||''), qt:String(r.qt||r.QT||''), total:parseFloat(r.total||r.TOTAL||r['Quotation 總額']||0), status:String(r.status||r.STATUS||'進行中'), note:String(r.note||r.NOTE||'') }; }
 function normalizeIncome(r){ 
-  // Support both old format (single entry) and new format (dep+bal card)
-  const isNew = r.depInv !== undefined || r.depAmount !== undefined || r.balInv !== undefined;
-  if (isNew) {
+  // Detect new format: has depAmount or balAmount or depInv keys with actual values
+  const hasNewFields = (r.depAmount !== undefined && r.depAmount !== '') || 
+                       (r.balAmount !== undefined && r.balAmount !== '') ||
+                       (r.depInv !== undefined && r.depInv !== '') ||
+                       (r.balInv !== undefined && r.balInv !== '');
+  
+  if (hasNewFields) {
+    // New card format
     return {
       id:String(r.id||''), projectId:String(r.projectId||''), client:String(r.client||''),
       type:String(r.type||r.serviceType||''), qt:String(r.qt||''),
       total:parseFloat(r.total||0),
       depInv:String(r.depInv||''), depAmount:parseFloat(r.depAmount||0),
-      depDueDate:cd(r.depDueDate), depStatus:String(r.depStatus||'待收款'),
-      depReceivedDate:cd(r.depReceivedDate), depAcct:String(r.depAcct||'Hang Seng'),
+      depDueDate:cd(r.depDueDate||''), depStatus:String(r.depStatus||'待收款'),
+      depReceivedDate:cd(r.depReceivedDate||''), depAcct:String(r.depAcct||'Hang Seng'),
       balInv:String(r.balInv||''), balAmount:parseFloat(r.balAmount||0),
-      balDueDate:cd(r.balDueDate), balStatus:String(r.balStatus||'待收款'),
-      balReceivedDate:cd(r.balReceivedDate), balAcct:String(r.balAcct||'Hang Seng'),
+      balDueDate:cd(r.balDueDate||''), balStatus:String(r.balStatus||'待收款'),
+      balReceivedDate:cd(r.balReceivedDate||''), balAcct:String(r.balAcct||'Hang Seng'),
       preinc:String(r.preinc||'否'), note:String(r.note||''), _format:'new'
     };
   }
-  // Old format - convert for display
+  
+  // Old format — single entry with amount/paymentType/invoice
+  const amt = parseFloat(r.amount||0);
+  const pt = String(r.paymentType||'全數收入');
+  const status = String(r.recstatus||r.status||'待收款');
   return {
     id:String(r.id||''), projectId:String(r.projectId||''), client:String(r.client||''),
-    type:String(r.type||''), qt:String(r.qt||''),
-    total:parseFloat(r.amount||0),
-    depInv:String(r.invoice||''), depAmount:parseFloat(r.paymentType==='Deposit'?r.amount:0),
-    depDueDate:'', depStatus:String(r.recstatus||'待收款'),
-    depReceivedDate:'', depAcct:String(r.acct||'Hang Seng'),
-    balInv:'', balAmount:parseFloat(r.paymentType==='Balance'?r.amount:(r.paymentType==='全數收入'?r.amount:0)),
-    balDueDate:'', balStatus:r.paymentType==='Balance'?String(r.recstatus||'待收款'):'待收款',
-    balReceivedDate:'', balAcct:String(r.acct||'Hang Seng'),
+    type:String(r.type||''), qt:String(r.qt||r.QT||''),
+    total:amt,
+    depInv:pt==='Deposit'?String(r.invoice||''):'',
+    depAmount:pt==='Deposit'?amt:0,
+    depDueDate:'', 
+    depStatus:pt==='Deposit'?status:'已收款',
+    depReceivedDate:pt==='Deposit'&&status==='已收款'?String(r.date||''):'',
+    depAcct:String(r.acct||'Hang Seng'),
+    balInv:pt==='Balance'?String(r.invoice||''):(pt==='全數收入'?String(r.invoice||''):''),
+    balAmount:pt==='Balance'?amt:(pt==='全數收入'?amt:0),
+    balDueDate:'',
+    balStatus:pt==='Balance'?status:(pt==='全數收入'?status:'待收款'),
+    balReceivedDate:(pt==='Balance'||pt==='全數收入')&&status==='已收款'?String(r.date||''):'',
+    balAcct:String(r.acct||'Hang Seng'),
     preinc:String(r.preinc||'否'), note:String(r.note||''), _format:'old'
   };
 }
