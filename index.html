@@ -403,17 +403,8 @@ body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-seri
   <div class="form-box">
     <div class="form-title">＋ 新增收入</div>
     <div class="fg fg2">
-      <div class="f"><label>日期</label><input type="date" id="in-date"></div>
-      <div class="f"><label>金額 (HKD)</label><input type="number" id="in-amount" placeholder="0.00" min="0" step="0.01"></div>
       <div class="f"><label>客戶名稱</label><input type="text" id="in-client" placeholder="例：Coca-Cola HK"></div>
       <div class="f"><label>Project</label><select id="in-project" onchange="onProjectSelect()"><option value="">— 選擇 Project —</option></select></div>
-      <div class="f"><label>收款類型</label>
-        <select id="in-ptype">
-          <option value="全數收入">全數收入</option>
-          <option value="Deposit">Deposit（訂金）</option>
-          <option value="Balance">Balance（尾數）</option>
-        </select>
-      </div>
       <div class="f"><label>服務類型</label>
         <select id="in-type">
           <option value="顧問服務費">顧問服務費</option>
@@ -426,22 +417,57 @@ body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-seri
         </select>
       </div>
       <div class="f"><label>Quotation No.（揀 Project 自動填入）</label><input type="text" id="in-qt" placeholder="例：QT-CCH-2025-001"></div>
-      <div class="f"><label>Invoice No.</label><input type="text" id="in-inv" placeholder="例：INV-CCH-2025-001"></div>
-      <div class="f"><label>收款帳戶</label>
-        <select id="in-acct">
-          <option value="Hang Seng">Hang Seng（主帳戶）</option>
-          <option value="其他">其他</option>
-        </select>
-      </div>
+      <div class="f"><label>合約總金額 (HKD)</label><input type="number" id="in-total" placeholder="0.00" min="0" step="0.01"></div>
       <div class="f"><label>Pre-incorporation?</label>
         <select id="in-preinc"><option value="否">否</option><option value="是">是（BR前）</option></select>
       </div>
-      <div class="f"><label>收款狀態</label>
-        <select id="in-recstatus">
-          <option value="待收款">🟡 待收款</option>
-          <option value="已收款">🟢 已收款</option>
-        </select>
+    </div>
+
+    <div style="background:var(--s2);border-radius:10px;padding:16px;margin:12px 0">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">DEPOSIT</div>
+      <div class="fg fg2">
+        <div class="f"><label>Deposit Invoice No.</label><input type="text" id="in-dep-inv" placeholder="例：INV-DEP-001"></div>
+        <div class="f"><label>Deposit 金額 (HKD)</label><input type="number" id="in-dep-amount" placeholder="0.00" min="0" step="0.01"></div>
+        <div class="f"><label>預計收款日</label><input type="date" id="in-dep-duedate"></div>
+        <div class="f"><label>收款狀態</label>
+          <select id="in-dep-status">
+            <option value="待收款">🟡 待收款</option>
+            <option value="已收款">🟢 已收款</option>
+          </select>
+        </div>
+        <div class="f"><label>實際收款日（已收時填）</label><input type="date" id="in-dep-received"></div>
+        <div class="f"><label>收款帳戶</label>
+          <select id="in-dep-acct">
+            <option value="Hang Seng">Hang Seng</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
       </div>
+    </div>
+
+    <div style="background:var(--s2);border-radius:10px;padding:16px;margin:12px 0">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">BALANCE</div>
+      <div class="fg fg2">
+        <div class="f"><label>Balance Invoice No.</label><input type="text" id="in-bal-inv" placeholder="例：INV-BAL-001"></div>
+        <div class="f"><label>Balance 金額 (HKD)</label><input type="number" id="in-bal-amount" placeholder="0.00" min="0" step="0.01"></div>
+        <div class="f"><label>預計收款日</label><input type="date" id="in-bal-duedate"></div>
+        <div class="f"><label>收款狀態</label>
+          <select id="in-bal-status">
+            <option value="待收款">🟡 待收款</option>
+            <option value="已收款">🟢 已收款</option>
+          </select>
+        </div>
+        <div class="f"><label>實際收款日（已收時填）</label><input type="date" id="in-bal-received"></div>
+        <div class="f"><label>收款帳戶</label>
+          <select id="in-bal-acct">
+            <option value="Hang Seng">Hang Seng</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg fg2">
       <div class="f full"><label>備註</label><textarea id="in-note" placeholder="例：Q1 品牌策略顧問服務"></textarea></div>
     </div>
     <div class="btn-row">
@@ -453,20 +479,15 @@ body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-seri
   <div class="sec-hdr">
     <div class="sec-title">收入記錄</div>
     <div class="filters">
-      <select class="fsel" id="in-f-month" onchange="renderIncome()"><option value="">全部月份</option></select>
-      <select class="fsel" id="in-f-ptype" onchange="renderIncome()">
-        <option value="">全部類型</option>
-        <option value="全數收入">全數收入</option>
-        <option value="Deposit">Deposit</option>
-        <option value="Balance">Balance</option>
-      </select>
       <select class="fsel" id="in-f-client" onchange="renderIncome()"><option value="">全部客戶</option></select>
+      <select class="fsel" id="in-f-status" onchange="renderIncome()">
+        <option value="">全部狀態</option>
+        <option value="待收款">🟡 有待收款</option>
+        <option value="已收款">🟢 全數已收</option>
+      </select>
     </div>
   </div>
-  <table class="tbl">
-    <thead><tr><th>日期</th><th>客戶</th><th>Project</th><th>類型</th><th>Invoice</th><th>帳戶</th><th>狀態</th><th>金額</th><th>備註</th><th></th></tr></thead>
-    <tbody id="inTbody"><tr><td colspan="9"><div class="empty"><div class="empty-ico">💰</div><div class="empty-txt">載入中...</div></div></td></tr></tbody>
-  </table>
+  <div id="inCards"><div class="empty"><div class="empty-ico">💰</div><div class="empty-txt">載入中...</div></div></div>
 </div>
 
 <!-- ══ EXPENSE ══ -->
@@ -826,7 +847,37 @@ async function loadAll() {
 // ── NORMALIZE ──
 function cd(d){ return d?String(d).slice(0,10):''; }
 function normalizeProject(r){ return { id:String(r.id||''), client:String(r.client||''), name:String(r.name||''), qt:String(r.qt||r.QT||''), total:parseFloat(r.total||r.TOTAL||r['Quotation 總額']||0), status:String(r.status||r.STATUS||'進行中'), note:String(r.note||r.NOTE||'') }; }
-function normalizeIncome(r){ return { id:String(r.id||''), date:cd(r.date), amount:parseFloat(r.amount||0), client:String(r.client||''), projectId:String(r.projectId||''), paymentType:String(r.paymentType||'全數收入'), type:String(r.type||''), qt:String(r.qt||''), invoice:String(r.invoice||''), acct:String(r.acct||'Hang Seng'), preinc:String(r.preinc||'否'), recstatus:String(r.recstatus||'待收款'), note:String(r.note||'') }; }
+function normalizeIncome(r){ 
+  // Support both old format (single entry) and new format (dep+bal card)
+  const isNew = r.depInv !== undefined || r.depAmount !== undefined || r.balInv !== undefined;
+  if (isNew) {
+    return {
+      id:String(r.id||''), projectId:String(r.projectId||''), client:String(r.client||''),
+      type:String(r.type||r.serviceType||''), qt:String(r.qt||''),
+      total:parseFloat(r.total||0),
+      depInv:String(r.depInv||''), depAmount:parseFloat(r.depAmount||0),
+      depDueDate:cd(r.depDueDate), depStatus:String(r.depStatus||'待收款'),
+      depReceivedDate:cd(r.depReceivedDate), depAcct:String(r.depAcct||'Hang Seng'),
+      balInv:String(r.balInv||''), balAmount:parseFloat(r.balAmount||0),
+      balDueDate:cd(r.balDueDate), balStatus:String(r.balStatus||'待收款'),
+      balReceivedDate:cd(r.balReceivedDate), balAcct:String(r.balAcct||'Hang Seng'),
+      preinc:String(r.preinc||'否'), note:String(r.note||''), _format:'new'
+    };
+  }
+  // Old format - convert for display
+  return {
+    id:String(r.id||''), projectId:String(r.projectId||''), client:String(r.client||''),
+    type:String(r.type||''), qt:String(r.qt||''),
+    total:parseFloat(r.amount||0),
+    depInv:String(r.invoice||''), depAmount:parseFloat(r.paymentType==='Deposit'?r.amount:0),
+    depDueDate:'', depStatus:String(r.recstatus||'待收款'),
+    depReceivedDate:'', depAcct:String(r.acct||'Hang Seng'),
+    balInv:'', balAmount:parseFloat(r.paymentType==='Balance'?r.amount:(r.paymentType==='全數收入'?r.amount:0)),
+    balDueDate:'', balStatus:r.paymentType==='Balance'?String(r.recstatus||'待收款'):'待收款',
+    balReceivedDate:'', balAcct:String(r.acct||'Hang Seng'),
+    preinc:String(r.preinc||'否'), note:String(r.note||''), _format:'old'
+  };
+}
 function normalizeVendor(r){ return { 
     id:String(r.id||''), projectId:String(r.projectId||''), name:String(r.name||''), type:String(r.type||''), qt:String(r.qt||''),
     total:parseFloat(r.total||0),
@@ -877,9 +928,6 @@ function populateClientFilter(){
   sel.innerHTML='<option value="">全部客戶</option>'+clients.map(c=>`<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('');
 }
 function populateInFilters(){
-  const months=[...new Set(D.income.map(r=>monthKey(r.date)))].sort().reverse();
-  const ms=document.getElementById('in-f-month'), mc=ms.value;
-  ms.innerHTML='<option value="">全部月份</option>'+months.map(m=>`<option value="${m}" ${m===mc?'selected':''}>${m.replace('-','年')}月</option>`).join('');
   const clients=[...new Set(D.income.map(r=>r.client))].sort();
   const cs=document.getElementById('in-f-client'), cc=cs.value;
   cs.innerHTML='<option value="">全部客戶</option>'+clients.map(c=>`<option value="${c}" ${c===cc?'selected':''}>${c}</option>`).join('');
@@ -892,7 +940,7 @@ function populateOpsFilter(){
 
 // ── OVERVIEW ──
 function renderOverview(){
-  const tI=D.income.reduce((s,r)=>s+r.amount,0);
+  const tI=D.income.reduce((s,r)=>s+(r.depAmount||0)+(r.balAmount||0),0);
   const tV=D.vendors.reduce((s,r)=>s+(r.total>0?r.total:(r.depAmount||0)+(r.balAmount||0)),0);
   const tPE=D.projectExpenses.reduce((s,r)=>s+r.amount,0);
   const tOps=D.opsExpenses.reduce((s,r)=>s+r.amount,0);
@@ -908,8 +956,8 @@ function renderOverview(){
   document.getElementById('ov-tax').textContent='預計稅: '+fmtHKD(tax);
 
   // Pending income (待收款)
-  const pendingInc=D.income.filter(r=>r.recstatus!=='已收款');
-  const pendingAmt=pendingInc.reduce((s,r)=>s+r.amount,0);
+  const pendingInc=D.income.filter(r=>r.depStatus!=='已收款'||r.balStatus!=='已收款');
+  const pendingAmt=D.income.reduce((s,r)=>s+(r.depStatus!=='已收款'?r.depAmount:0)+(r.balStatus!=='已收款'?r.balAmount:0),0);
   document.getElementById('ov-unbal').textContent=fmtHKD(pendingAmt);
   document.getElementById('ov-unbal-sub').textContent=pendingInc.length+' 筆待收款';
 
@@ -929,7 +977,7 @@ function renderOverview(){
 
   // Clients breakdown
   const clients={};
-  D.income.forEach(r=>{ clients[r.client]=(clients[r.client]||0)+r.amount; });
+  D.income.forEach(r=>{ clients[r.client]=(clients[r.client]||0)+(r.depAmount||0)+(r.balAmount||0); });
   const sc=Object.entries(clients).sort((a,b)=>b[1]-a[1]), mc2=sc[0]?.[1]||1;
   document.getElementById('ov-clients').innerHTML=sc.length
     ?sc.map(([n,a])=>`<div class="bk-row"><div><div class="bk-name">${n}</div><div class="prog-bar"><div class="prog-fill" style="width:${(a/mc2*100).toFixed(0)}%;background:var(--mint)"></div></div></div><div class="bk-amt amint">${fmtHKD(a)}</div></div>`).join('')
@@ -972,11 +1020,11 @@ function renderProjects(){
   if(!projs.length){ grid.innerHTML=empty('📁','尚未有 Project'); return; }
   grid.innerHTML=projs.map(p=>{
     const allInc2=D.income.filter(r=>r.projectId===p.id);
-    const inc=allInc2.filter(r=>r.recstatus==='已收款').reduce((s,r)=>s+r.amount,0);
-    const pend=allInc2.filter(r=>r.recstatus!=='已收款').reduce((s,r)=>s+r.amount,0);
+    const inc=allInc2.reduce((s,r)=>s+(r.depStatus==='已收款'?r.depAmount:0)+(r.balStatus==='已收款'?r.balAmount:0),0);
+    const pend=allInc2.reduce((s,r)=>s+(r.depStatus!=='已收款'?r.depAmount:0)+(r.balStatus!=='已收款'?r.balAmount:0),0);
     const vexp=D.vendors.filter(r=>r.projectId===p.id).reduce((s,r)=>s+(r.total>0?r.total:(r.depAmount||0)+(r.balAmount||0)),0);
     const misc=D.projectExpenses.filter(r=>r.projectId===p.id).reduce((s,r)=>s+r.amount,0);
-    const allIncTotal=allInc2.reduce((s,r)=>s+r.amount,0);
+    const allIncTotal=allInc2.reduce((s,r)=>s+r.depAmount+r.balAmount,0);
     const net=allIncTotal-vexp-misc;
     return `<div class="proj-card" onclick="showProjDetail('${p.id}')">
       <div class="proj-status">${statusBadge(p.status)}<span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim)">${p.qt||''}</span></div>
@@ -1013,9 +1061,9 @@ function renderProjDetail(){
   const id=activeProjId;
   const p=D.projects.find(x=>x.id===id);
   const allInc=D.income.filter(r=>r.projectId===id);
-  const received=allInc.filter(r=>r.recstatus==='已收款').reduce((s,r)=>s+r.amount,0);
-  const pending=allInc.filter(r=>r.recstatus!=='已收款').reduce((s,r)=>s+r.amount,0);
-  const inc=allInc.reduce((s,r)=>s+r.amount,0);
+  const received=allInc.reduce((s,r)=>s+(r.depStatus==='已收款'?r.depAmount:0)+(r.balStatus==='已收款'?r.balAmount:0),0);
+  const pending=allInc.reduce((s,r)=>s+(r.depStatus!=='已收款'?r.depAmount:0)+(r.balStatus!=='已收款'?r.balAmount:0),0);
+  const inc=allInc.reduce((s,r)=>s+r.depAmount+r.balAmount,0);
   const vexp=D.vendors.filter(r=>r.projectId===id).reduce((s,r)=>s+(r.total>0?r.total:(r.depAmount||0)+(r.balAmount||0)),0);
   const misc=D.projectExpenses.filter(r=>r.projectId===id).reduce((s,r)=>s+r.amount,0);
   const net=inc-vexp-misc;
@@ -1032,15 +1080,53 @@ function renderProjDetail(){
   // Income list
   const incRecs=D.income.filter(r=>r.projectId===id).sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('pd-income-list').innerHTML=incRecs.length
-    ?`<table class="tbl"><thead><tr><th>日期</th><th>類型</th><th>Invoice</th><th>收款狀態</th><th>金額</th><th></th></tr></thead><tbody>`+
-      incRecs.map(r=>`<tr>
-        <td class="datec">${r.date}</td>
-        <td>${ptBadge(r.paymentType)}</td>
-        <td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">${r.invoice||'—'}</td>
-        <td>${recStatusBadge(r.recstatus||'待收款')}</td>
-        <td class="amint">${fmtHKD(r.amount)}</td>
-        <td><button class="btn-del-sm" onclick="deleteIncome('${r.id}')">刪除</button></td>
-      </tr>`).join('')+`</tbody></table>`
+    ?incRecs.map(r=>{
+      const depOK=r.depStatus==='已收款'; const balOK=r.balStatus==='已收款';
+      const today=new Date().toISOString().slice(0,10);
+      const depOverdue=r.depDueDate&&r.depDueDate<today&&!depOK;
+      const balOverdue=r.balDueDate&&r.balDueDate<today&&!balOK;
+      return `<div style="background:var(--s2);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <div style="font-weight:600;font-size:14px">${r.client}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:3px">${r.type}${r.qt?' · '+r.qt:''}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--dim)">合約總額</div>
+            <div class="amint" style="font-size:16px">${r.total>0?fmtHKD(r.total):'—'}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:var(--bg);border-radius:8px;padding:10px;border:1px solid ${depOverdue?'rgba(255,122,122,0.4)':depOK?'rgba(205,255,216,0.2)':'var(--border)'}">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:6px">DEPOSIT</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="amint">${r.depAmount>0?fmtHKD(r.depAmount):'—'}</div>
+              <span class="badge ${depOK?'badge-mint':'badge-amber'}">${depOK?'🟢 已收':'🟡 待收'}</span>
+            </div>
+            ${r.depInv?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:4px">${r.depInv}</div>`:''}
+            ${r.depDueDate?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:${depOverdue?'var(--red)':'var(--dim)'};margin-top:4px">⏰ ${r.depDueDate}${depOverdue?' (逾期)':''}</div>`:''}
+            ${r.depReceivedDate&&depOK?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px">收款: ${r.depReceivedDate} · ${r.depAcct}</div>`:''}
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;border:1px solid ${balOverdue?'rgba(255,122,122,0.4)':balOK?'rgba(205,255,216,0.2)':'var(--border)'}">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:6px">BALANCE</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="amint">${r.balAmount>0?fmtHKD(r.balAmount):'—'}</div>
+              <span class="badge ${balOK?'badge-mint':'badge-amber'}">${balOK?'🟢 已收':'🟡 待收'}</span>
+            </div>
+            ${r.balInv?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:4px">${r.balInv}</div>`:''}
+            ${r.balDueDate?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:${balOverdue?'var(--red)':'var(--dim)'};margin-top:4px">⏰ ${r.balDueDate}${balOverdue?' (逾期)':''}</div>`:''}
+            ${r.balReceivedDate&&balOK?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px">收款: ${r.balReceivedDate} · ${r.balAcct}</div>`:''}
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+          <div style="font-size:12px;color:var(--dim)">${r.note||''}</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-edit-sm" onclick="openEditIncome('${r.id}')">編輯</button>
+            <button class="btn-del-sm" onclick="deleteIncome('${r.id}')">刪除</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('')
     :empty('💰','未有收入記錄');
 
   // Vendor list
@@ -1120,11 +1206,30 @@ async function deleteProject(id){
 
 // ── INCOME ──
 function addIncome(){
-  const date=document.getElementById('in-date').value;
-  const amount=parseFloat(document.getElementById('in-amount').value);
   const client=document.getElementById('in-client').value.trim();
-  if(!date||!amount||!client){ alert('請填寫日期、金額及客戶名稱'); return; }
-  const row={ id:Date.now(), date, amount, client, projectId:document.getElementById('in-project').value, paymentType:document.getElementById('in-ptype').value, type:document.getElementById('in-type').value, qt:document.getElementById('in-qt').value.trim(), invoice:document.getElementById('in-inv').value.trim(), acct:document.getElementById('in-acct').value, preinc:document.getElementById('in-preinc').value, recstatus:document.getElementById('in-recstatus').value, note:document.getElementById('in-note').value.trim() };
+  if(!client){ alert('請填寫客戶名稱'); return; }
+  const row={ 
+    id:Date.now(), 
+    projectId:document.getElementById('in-project').value,
+    client,
+    type:document.getElementById('in-type').value,
+    qt:document.getElementById('in-qt').value.trim(),
+    total:parseFloat(document.getElementById('in-total').value||0),
+    depInv:document.getElementById('in-dep-inv').value.trim(),
+    depAmount:parseFloat(document.getElementById('in-dep-amount').value||0),
+    depDueDate:document.getElementById('in-dep-duedate').value,
+    depStatus:document.getElementById('in-dep-status').value,
+    depReceivedDate:document.getElementById('in-dep-received').value,
+    depAcct:document.getElementById('in-dep-acct').value,
+    balInv:document.getElementById('in-bal-inv').value.trim(),
+    balAmount:parseFloat(document.getElementById('in-bal-amount').value||0),
+    balDueDate:document.getElementById('in-bal-duedate').value,
+    balStatus:document.getElementById('in-bal-status').value,
+    balReceivedDate:document.getElementById('in-bal-received').value,
+    balAcct:document.getElementById('in-bal-acct').value,
+    preinc:document.getElementById('in-preinc').value,
+    note:document.getElementById('in-note').value.trim()
+  };
   const btn=document.getElementById('btnAddIn');
   btn.disabled=true; btn.textContent='儲存中...';
   setSyncStatus('busy','⟳ 儲存中...');
@@ -1162,24 +1267,52 @@ async function deleteIncome(id){
 function openEditIncome(id){
   const r=D.income.find(x=>x.id===id); if(!r) return;
   editingIncomeId=id;
-  document.getElementById('ei-date').value=r.date;
-  document.getElementById('ei-amount').value=r.amount;
-  document.getElementById('ei-client').value=r.client;
+  document.getElementById('ei-client').value=r.client||'';
   populateProjectSelect('ei-project',r.projectId);
-  document.getElementById('ei-ptype').value=r.paymentType;
-  document.getElementById('ei-type').value=r.type;
+  document.getElementById('ei-type').value=r.type||'顧問服務費';
   document.getElementById('ei-qt').value=r.qt||'';
-  document.getElementById('ei-inv').value=r.invoice||'';
-  document.getElementById('ei-acct').value=r.acct||'Hang Seng';
+  document.getElementById('ei-total').value=r.total||'';
   document.getElementById('ei-preinc').value=r.preinc||'否';
-  document.getElementById('ei-recstatus').value=r.recstatus||'待收款';
+  document.getElementById('ei-dep-inv').value=r.depInv||'';
+  document.getElementById('ei-dep-amount').value=r.depAmount||'';
+  document.getElementById('ei-dep-duedate').value=r.depDueDate||'';
+  document.getElementById('ei-dep-status').value=r.depStatus||'待收款';
+  document.getElementById('ei-dep-received').value=r.depReceivedDate||'';
+  document.getElementById('ei-dep-acct').value=r.depAcct||'Hang Seng';
+  document.getElementById('ei-bal-inv').value=r.balInv||'';
+  document.getElementById('ei-bal-amount').value=r.balAmount||'';
+  document.getElementById('ei-bal-duedate').value=r.balDueDate||'';
+  document.getElementById('ei-bal-status').value=r.balStatus||'待收款';
+  document.getElementById('ei-bal-received').value=r.balReceivedDate||'';
+  document.getElementById('ei-bal-acct').value=r.balAcct||'Hang Seng';
   document.getElementById('ei-note').value=r.note||'';
   openModal('modalEditIncome');
 }
 
 async function saveEditIncome(){
   const id=editingIncomeId;
-  const updated={ id, date:document.getElementById('ei-date').value, amount:parseFloat(document.getElementById('ei-amount').value), client:document.getElementById('ei-client').value.trim(), projectId:document.getElementById('ei-project').value, paymentType:document.getElementById('ei-ptype').value, type:document.getElementById('ei-type').value, qt:document.getElementById('ei-qt').value.trim(), invoice:document.getElementById('ei-inv').value.trim(), acct:document.getElementById('ei-acct').value, preinc:document.getElementById('ei-preinc').value, recstatus:document.getElementById('ei-recstatus').value, note:document.getElementById('ei-note').value.trim() };
+  const r=D.income.find(x=>x.id===id);
+  const updated={ 
+    id, projectId:document.getElementById('ei-project').value,
+    client:document.getElementById('ei-client').value.trim(),
+    type:document.getElementById('ei-type').value,
+    qt:document.getElementById('ei-qt').value.trim(),
+    total:parseFloat(document.getElementById('ei-total').value||0),
+    depInv:document.getElementById('ei-dep-inv').value.trim(),
+    depAmount:parseFloat(document.getElementById('ei-dep-amount').value||0),
+    depDueDate:document.getElementById('ei-dep-duedate').value,
+    depStatus:document.getElementById('ei-dep-status').value,
+    depReceivedDate:document.getElementById('ei-dep-received').value,
+    depAcct:document.getElementById('ei-dep-acct').value,
+    balInv:document.getElementById('ei-bal-inv').value.trim(),
+    balAmount:parseFloat(document.getElementById('ei-bal-amount').value||0),
+    balDueDate:document.getElementById('ei-bal-duedate').value,
+    balStatus:document.getElementById('ei-bal-status').value,
+    balReceivedDate:document.getElementById('ei-bal-received').value,
+    balAcct:document.getElementById('ei-bal-acct').value,
+    preinc:document.getElementById('ei-preinc').value,
+    note:document.getElementById('ei-note').value.trim()
+  };
   const btn=document.getElementById('btnSaveEI'); btn.disabled=true; btn.textContent='儲存中...';
   setSyncStatus('busy','⟳ 儲存中...');
   const r=await apiCall({action:'editIncome',id,data:JSON.stringify(updated)});
@@ -1189,32 +1322,65 @@ async function saveEditIncome(){
 }
 
 function renderIncome(){
-  const fm=document.getElementById('in-f-month').value;
-  const ft=document.getElementById('in-f-ptype').value;
   const fc=document.getElementById('in-f-client').value;
-  let recs=[...D.income].filter(r=>(!fm||r.date.startsWith(fm))&&(!ft||r.paymentType===ft)&&(!fc||r.client===fc)).sort((a,b)=>b.date.localeCompare(a.date));
-  const tbody=document.getElementById('inTbody');
-  if(!recs.length){ tbody.innerHTML=`<tr><td colspan="9">${empty('💰','尚未有收入記錄')}</td></tr>`; return; }
-  const groups={};
-  recs.forEach(r=>{ const k=monthKey(r.date); if(!groups[k]) groups[k]=[]; groups[k].push(r); });
-  let html='';
-  Object.keys(groups).sort().reverse().forEach(k=>{
-    const grp=groups[k], total=grp.reduce((s,r)=>s+r.amount,0);
-    html+=`<tr class="mth-row"><td colspan="8">${monthLabel(grp[0].date)}</td><td class="mth-total amint">${fmtHKD(total)}</td></tr>`;
-    grp.forEach(r=>{ html+=`<tr>
-      <td class="datec">${r.date}</td>
-      <td>${r.client}</td>
-      <td style="font-size:11px;color:var(--dim)">${projName(r.projectId)}</td>
-      <td>${ptBadge(r.paymentType)}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">${r.invoice||'—'}</td>
-      <td style="font-size:11px;color:var(--dim)">${r.acct}</td>
-      <td>${recStatusBadge(r.recstatus||'待收款')}</td>
-      <td class="amint">${fmtHKD(r.amount)}</td>
-      <td class="notec" title="${r.note}">${r.note||'—'}</td>
-      <td style="white-space:nowrap"><button class="btn-edit-sm" onclick="openEditIncome('${r.id}')">編輯</button> <button class="btn-del-sm" onclick="deleteIncome('${r.id}')">刪除</button></td>
-    </tr>`; });
+  const fs=document.getElementById('in-f-status').value;
+  let recs=[...D.income].filter(r=>{
+    if(fc&&r.client!==fc) return false;
+    if(fs==='待收款') return r.depStatus!=='已收款'||r.balStatus!=='已收款';
+    if(fs==='已收款') return r.depStatus==='已收款'&&r.balStatus==='已收款';
+    return true;
   });
-  tbody.innerHTML=html;
+  const container=document.getElementById('inCards');
+  if(!recs.length){ container.innerHTML=empty('💰','尚未有收入記錄'); return; }
+  const today=new Date().toISOString().slice(0,10);
+  container.innerHTML=recs.map(r=>{
+    const depOK=r.depStatus==='已收款'; const balOK=r.balStatus==='已收款';
+    const depOverdue=r.depDueDate&&r.depDueDate<today&&!depOK;
+    const balOverdue=r.balDueDate&&r.balDueDate<today&&!balOK;
+    const total=r.depAmount+r.balAmount;
+    const received=(depOK?r.depAmount:0)+(balOK?r.balAmount:0);
+    return `<div style="background:var(--s1);border:1px solid var(--border2);border-radius:14px;padding:18px 20px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+        <div>
+          <div style="font-weight:600;font-size:15px">${r.client}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:4px">${projName(r.projectId)}${r.type?' · '+r.type:''}${r.qt?' · '+r.qt:''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">合約總額 / 已收</div>
+          <div><span class="amint" style="font-size:16px">${r.total>0?fmtHKD(r.total):fmtHKD(total)}</span> <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--dim)">/ ${fmtHKD(received)}</span></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="background:var(--s2);border-radius:8px;padding:12px;border:1px solid ${depOverdue?'rgba(255,122,122,0.4)':depOK?'rgba(205,255,216,0.2)':'var(--border)'}">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:8px">DEPOSIT</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="amint" style="font-size:14px">${r.depAmount>0?fmtHKD(r.depAmount):'—'}</div>
+            <span class="badge ${depOK?'badge-mint':'badge-amber'}">${depOK?'🟢 已收':'🟡 待收'}</span>
+          </div>
+          ${r.depInv?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:6px">${r.depInv}</div>`:''}
+          ${r.depDueDate?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:${depOverdue?'var(--red)':'var(--dim)'};margin-top:4px">⏰ ${r.depDueDate}${depOverdue?' (逾期)':''}</div>`:''}
+          ${r.depReceivedDate&&depOK?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--mint);margin-top:4px">✓ ${r.depReceivedDate} · ${r.depAcct}</div>`:''}
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:12px;border:1px solid ${balOverdue?'rgba(255,122,122,0.4)':balOK?'rgba(205,255,216,0.2)':'var(--border)'}">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:8px">BALANCE</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="amint" style="font-size:14px">${r.balAmount>0?fmtHKD(r.balAmount):'—'}</div>
+            <span class="badge ${balOK?'badge-mint':'badge-amber'}">${balOK?'🟢 已收':'🟡 待收'}</span>
+          </div>
+          ${r.balInv?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:6px">${r.balInv}</div>`:''}
+          ${r.balDueDate?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:${balOverdue?'var(--red)':'var(--dim)'};margin-top:4px">⏰ ${r.balDueDate}${balOverdue?' (逾期)':''}</div>`:''}
+          ${r.balReceivedDate&&balOK?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--mint);margin-top:4px">✓ ${r.balReceivedDate} · ${r.balAcct}</div>`:''}
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:12px;color:var(--dim)">${r.note||''}</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-edit-sm" onclick="openEditIncome('${r.id}')">編輯</button>
+          <button class="btn-del-sm" onclick="deleteIncome('${r.id}')">刪除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── OPS EXPENSE ──
@@ -1360,7 +1526,7 @@ async function deleteMisc(id){
 
 // ── REPORT ──
 function renderReport(){
-  const tI=D.income.reduce((s,r)=>s+r.amount,0);
+  const tI=D.income.reduce((s,r)=>s+(r.depAmount||0)+(r.balAmount||0),0);
   const tE=D.vendors.reduce((s,r)=>s+r.amount,0)+D.projectExpenses.reduce((s,r)=>s+r.amount,0)+D.opsExpenses.reduce((s,r)=>s+r.amount,0);
   const net=tI-tE;
   const tax=net>0?(Math.min(net,2000000)*0.0825+Math.max(0,net-2000000)*0.165):0;
@@ -1380,7 +1546,7 @@ function renderReport(){
 
   // Income breakdown
   const cl={};
-  D.income.forEach(r=>{ cl[r.client]=(cl[r.client]||0)+r.amount; });
+  D.income.forEach(r=>{ cl[r.client]=(cl[r.client]||0)+(r.depAmount||0)+(r.balAmount||0); });
   document.getElementById('rpt-inc-bk').innerHTML=Object.entries(cl).sort((a,b)=>b[1]-a[1]).length
     ?Object.entries(cl).sort((a,b)=>b[1]-a[1]).map(([n,a])=>`<div class="bk-row"><div class="bk-name">${n}</div><div class="bk-amt amint">${fmtHKD(a)}</div></div>`).join('')
     :empty('📊','未有數據');
