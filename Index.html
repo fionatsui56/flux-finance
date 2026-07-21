@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLUX WORKS — Finance</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg:       #0d1521;
+  --s1:       #111a28;
+  --s2:       #162035;
+  --s3:       #1c2840;
+  --border:   rgba(205,255,216,0.12);
+  --border2:  rgba(205,255,216,0.22);
+  --text:     #ffffff;
+  --muted:    #b0b8c1;
+  --dim:      #6b7a8d;
+  --mint:     #cdffd8;
+  --blue:     #94b9ff;
+  --red:      #ff7a7a;
+  --amber:    #fbbf24;
+  --grad:     linear-gradient(135deg, #cdffd8, #94b9ff);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; font-size: 15px; min-height: 100vh; }
+
+/* ── LOGIN ── */
+.login-wrap {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 1000; transition: opacity 0.4s;
+}
+.login-wrap.gone { opacity: 0; pointer-events: none; }
+.login-card {
+  width: 100%; max-width: 340px;
+  background: var(--s1); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 40px 32px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.login-logo { font-size: 20px; font-weight: 700; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 4px; }
+.login-tagline { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; margin-bottom: 32px; }
+.login-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; align-self: flex-start; margin-bottom: 8px; }
+.login-input { width: 100%; background: var(--s2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 14px; letter-spacing: 3px; outline: none; margin-bottom: 16px; transition: border-color 0.2s, box-shadow 0.2s; }
+.login-input:focus { border-color: var(--mint); box-shadow: 0 0 0 3px rgba(205,255,216,0.08); }
+.login-btn { width: 100%; padding: 13px; background: var(--grad); color: var(--bg); font-family: 'Sora', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; border: none; border-radius: 10px; cursor: pointer; transition: opacity 0.2s; }
+.login-btn:hover { opacity: 0.85; }
+.login-err { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--red); margin-top: 12px; min-height: 16px; }
+.login-foot { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--dim); letter-spacing: 1px; margin-top: 32px; }
+
+/* ── LOADING ── */
+.load-wrap { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 900; transition: opacity 0.4s; }
+.load-wrap.gone { opacity: 0; pointer-events: none; }
+.load-logo { font-size: 22px; font-weight: 700; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
+.load-bar { width: 180px; height: 2px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+.load-fill { height: 100%; background: var(--grad); animation: loadp 1.2s ease-in-out infinite; }
+@keyframes loadp { 0%{width:0} 60%{width:70%} 100%{width:100%} }
+.load-txt { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--dim); letter-spacing: 2px; margin-top: 14px; }
+
+/* ── HEADER ── */
+.hdr { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border2); padding: 18px 28px 0; }
+.hdr-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.hdr-logo { font-size: 18px; font-weight: 700; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hdr-sub { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+.hdr-right { display: flex; align-items: center; gap: 12px; }
+.sync-pill { font-family: 'DM Mono', monospace; font-size: 10px; padding: 4px 12px; border-radius: 20px; }
+.sync-ok   { color: var(--mint); background: rgba(205,255,216,0.08); border: 1px solid rgba(205,255,216,0.2); }
+.sync-busy { color: var(--amber); background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); }
+.sync-err  { color: var(--red);   background: rgba(255,122,122,0.08); border: 1px solid rgba(255,122,122,0.2); }
+.dt-badge { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); background: var(--s1); border: 1px solid var(--border2); padding: 7px 14px; border-radius: 10px; text-align: right; line-height: 1.7; }
+.dt-badge .dt-main { font-size: 11px; color: var(--text); }
+.dt-badge .dt-fy { font-size: 9px; color: var(--dim); letter-spacing: 1px; }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 0; }
+.tab { padding: 12px 22px; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); cursor: pointer; border: none; border-bottom: 2px solid transparent; background: none; transition: all 0.2s; font-family: 'Sora', sans-serif; }
+.tab.on { color: var(--mint); border-bottom-color: var(--mint); }
+.tab:hover:not(.on) { color: var(--muted); }
+
+/* ── CONTENT ── */
+.page { padding: 24px 28px; max-width: 1000px; margin: 0 auto; }
+.panel { display: none; }
+.panel.on { display: block; }
+
+/* ── CARDS ── */
+.card-grid { display: grid; gap: 12px; margin-bottom: 22px; }
+.g3 { grid-template-columns: repeat(3,1fr); }
+.g2 { grid-template-columns: repeat(2,1fr); }
+.card { background: var(--s1); border: 1px solid var(--border2); border-radius: 14px; padding: 18px 20px; }
+.card-lbl { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; margin-bottom: 10px; }
+.card-val { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+.card-val.mint  { color: var(--mint); }
+.card-val.red   { color: var(--red); }
+.card-val.blue  { color: var(--blue); }
+.card-val.amber { color: var(--amber); }
+.card-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--dim); margin-top: 6px; }
+
+/* ── ALERT BANNERS ── */
+.alerts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.alert { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; font-size: 12px; }
+.alert-red   { background: rgba(255,122,122,0.08); border: 1px solid rgba(255,122,122,0.25); color: var(--red); }
+.alert-amber { background: rgba(251,191,36,0.08);  border: 1px solid rgba(251,191,36,0.25);  color: var(--amber); }
+.alert-icon { font-size: 16px; }
+
+/* ── SECTION HEADER ── */
+.sec-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+.sec-title { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+
+/* ── FORM ── */
+.form-box { background: var(--s1); border: 1px solid var(--border2); border-radius: 14px; padding: 20px 22px; margin-bottom: 22px; }
+.form-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 16px; }
+.fg { display: grid; gap: 12px; margin-bottom: 12px; }
+.fg2 { grid-template-columns: 1fr 1fr; }
+.fg3 { grid-template-columns: 1fr 1fr 1fr; }
+.f { display: flex; flex-direction: column; gap: 5px; }
+.f.full { grid-column: 1/-1; }
+.f label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); }
+.f input, .f select, .f textarea {
+  background: var(--s2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 13px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 14px;
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.f input:focus, .f select:focus, .f textarea:focus { border-color: var(--mint); box-shadow: 0 0 0 3px rgba(205,255,216,0.07); }
+.f select option { background: var(--s2); }
+.f textarea { resize: vertical; min-height: 60px; }
+.btn-row { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ── BUTTONS ── */
+.btn { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 9px 20px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: var(--grad); color: var(--bg); }
+.btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-ghost { background: transparent; color: var(--dim); border: 1px solid var(--border2); }
+.btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+.btn-sm { padding: 3px 9px; font-size: 10px; border-radius: 6px; }
+.btn-edit-sm { background: transparent; color: var(--dim); border: 1px solid var(--border); font-family: 'Sora', sans-serif; font-weight: 600; font-size: 10px; letter-spacing: 0.5px; padding: 3px 9px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+.btn-edit-sm:hover { color: var(--mint); border-color: var(--mint); }
+.btn-del-sm { background: transparent; color: var(--dim); border: 1px solid transparent; font-family: 'Sora', sans-serif; font-weight: 600; font-size: 10px; padding: 3px 9px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+.btn-del-sm:hover { color: var(--red); border-color: var(--red); }
+
+/* ── FILTERS ── */
+.filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.fsel { background: var(--s1); border: 1px solid var(--border2); border-radius: 8px; padding: 8px 13px; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; outline: none; cursor: pointer; }
+.fsel:focus { border-color: var(--mint); }
+.fsel option { background: var(--s2); }
+
+/* ── TABLE ── */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border2); white-space: nowrap; }
+.tbl td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: var(--s1); }
+.tbl .mth-row td { background: var(--s2) !important; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); padding: 7px 12px; border-bottom: none !important; }
+.tbl .mth-row:hover td { background: var(--s2) !important; }
+.mth-total { text-align: right; padding-right: 12px; font-family: 'DM Mono', monospace; }
+
+/* AMOUNTS */
+.amint { color: var(--mint); font-family: 'DM Mono', monospace; font-weight: 500; font-size: 13px; }
+.amred { color: var(--red);  font-family: 'DM Mono', monospace; font-weight: 500; font-size: 13px; }
+.amblue{ color: var(--blue); font-family: 'DM Mono', monospace; font-weight: 500; font-size: 13px; }
+.datec { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--dim); white-space: nowrap; }
+.notec { font-size: 12px; color: var(--dim); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* BADGES */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-family: 'DM Mono', monospace; font-size: 10px; white-space: nowrap; }
+.badge-mint   { background: rgba(205,255,216,0.1); color: var(--mint); border: 1px solid rgba(205,255,216,0.25); }
+.badge-blue   { background: rgba(148,185,255,0.1); color: var(--blue); border: 1px solid rgba(148,185,255,0.25); }
+.badge-amber  { background: rgba(251,191,36,0.1);  color: var(--amber); border: 1px solid rgba(251,191,36,0.25); }
+.badge-red    { background: rgba(255,122,122,0.1); color: var(--red);  border: 1px solid rgba(255,122,122,0.25); }
+.badge-dim    { background: var(--s2); color: var(--dim); border: 1px solid var(--border); }
+.badge-preinc { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.25); font-size: 9px; margin-left: 4px; vertical-align: middle; }
+
+/* PROJECT CARDS */
+.proj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.proj-card { background: var(--s1); border: 1px solid var(--border2); border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
+.proj-card:hover { border-color: rgba(205,255,216,0.4); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.proj-card.active-proj { border-color: var(--mint); }
+.proj-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.proj-client { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--dim); margin-bottom: 12px; }
+.proj-pnl { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.proj-pnl-item { text-align: center; }
+.proj-pnl-label { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+.proj-pnl-val { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; }
+.proj-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.proj-status { display: flex; align-items: center; justify-content: space-between; }
+
+/* PROJECT DETAIL */
+.proj-detail { background: var(--s1); border: 1px solid var(--border2); border-radius: 14px; padding: 22px 24px; margin-bottom: 22px; }
+.proj-detail-hdr { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+.proj-detail-name { font-size: 20px; font-weight: 700; }
+.proj-detail-client { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--dim); margin-top: 4px; }
+.pnl-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; background: var(--s2); border-radius: 10px; padding: 16px; margin-bottom: 20px; }
+.pnl-item { text-align: center; }
+.pnl-lbl { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.pnl-val { font-size: 22px; font-weight: 700; }
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+
+/* MODAL */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; z-index: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.modal-bg.on { opacity: 1; pointer-events: all; }
+.modal { background: var(--s1); border: 1px solid var(--border2); border-radius: 16px; padding: 24px; width: 95%; max-width: 700px; max-height: 92vh; overflow-y: auto; overflow-x: hidden; transform: translateY(16px); transition: transform 0.2s; box-sizing: border-box; }
+.modal * { box-sizing: border-box; }
+.modal .fg2 { grid-template-columns: 1fr 1fr; }
+.modal input, .modal select, .modal textarea { width: 100%; min-width: 0; }
+.modal-bg.on .modal { transform: translateY(0); }
+.modal-title { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 18px; }
+
+/* EXPORT */
+.export-row { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 20px; }
+.btn-export { background: var(--s1); border: 1px solid var(--border2); border-radius: 8px; padding: 8px 16px; color: var(--muted); font-family: 'Sora', sans-serif; font-weight: 600; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+.btn-export:hover { color: var(--mint); border-color: var(--mint); }
+
+/* BREAKDOWN */
+.bk-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.bk-row:last-child { border-bottom: none; }
+.bk-name { font-size: 13px; }
+.bk-amt { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
+.prog-bar { height: 2px; background: var(--border2); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 2px; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 36px 20px; color: var(--dim); }
+.empty-ico { font-size: 28px; margin-bottom: 10px; }
+.empty-txt { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; }
+
+/* MINI DIVIDER */
+.sub-sec { margin-bottom: 16px; }
+.sub-sec-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--dim); text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+
+@media(max-width:700px) {
+  .modal .fg2 { grid-template-columns: 1fr; }
+  .modal { padding: 18px; width: 98%; }
+}
+@media(max-width:640px) {
+  .g3,.g2 { grid-template-columns: 1fr; }
+  .fg2,.fg3 { grid-template-columns: 1fr; }
+  .pnl-bar { grid-template-columns: 1fr 1fr; }
+  .page { padding: 16px; }
+  .hdr { padding: 14px 16px 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-logo">FLUX WORKS LIMITED</div>
+    <div class="login-tagline">Finance · Internal Access Only</div>
+    <div class="login-label">Password</div>
+    <input class="login-input" type="password" id="loginPw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Enter</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+  <div class="login-foot">flux-strategy.com · Internal System</div>
+</div>
+
+<!-- LOADING -->
+<div class="load-wrap" id="loadWrap">
+  <div class="load-logo">FLUX WORKS LIMITED</div>
+  <div class="load-bar"><div class="load-fill"></div></div>
+  <div class="load-txt">連接 Google Sheets...</div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <div class="hdr-logo">FLUX WORKS LIMITED</div>
+      <div class="hdr-sub">Marketing Consultant · Finance System v6.0</div>
+    </div>
+    <div class="hdr-right">
+      <div class="sync-pill sync-ok" id="syncPill">● 已同步</div>
+      <div class="dt-badge">
+        <div class="dt-main" id="dtMain">—</div>
+        <div class="dt-fy">FY 2025/26 · Mar 31</div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab on"  onclick="goTab('overview',this)">總覽</button>
+    <button class="tab"     onclick="goTab('projects',this)">Projects</button>
+    <button class="tab"     onclick="goTab('income',this)">收入</button>
+    <button class="tab"     onclick="goTab('expense',this)">支出</button>
+    <button class="tab"     onclick="goTab('report',this)">報表</button>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- ══ OVERVIEW ══ -->
+<div class="panel on" id="panel-overview">
+  <div class="card-grid g3">
+    <div class="card"><div class="card-lbl">總收入</div><div class="card-val mint" id="ov-inc">HK$0</div><div class="card-sub" id="ov-inc-sub">0 筆</div></div>
+    <div class="card"><div class="card-lbl">總支出</div><div class="card-val red"  id="ov-exp">HK$0</div><div class="card-sub" id="ov-exp-sub">0 筆</div></div>
+    <div class="card"><div class="card-lbl">淨利潤</div><div class="card-val blue" id="ov-net">HK$0</div><div class="card-sub" id="ov-tax">預計稅: HK$0</div></div>
+  </div>
+  <div class="card-grid g3">
+    <div class="card"><div class="card-lbl">待收款金額</div><div class="card-val amber" id="ov-unbal">HK$0</div><div class="card-sub" id="ov-unbal-sub">—</div></div>
+    <div class="card"><div class="card-lbl">Vendor 待付</div><div class="card-val red" id="ov-unpay">HK$0</div><div class="card-sub" id="ov-unpay-sub">—</div></div>
+    <div class="card"><div class="card-lbl">進行中 Projects</div><div class="card-val blue" id="ov-proj">0</div><div class="card-sub">個 Active</div></div>
+  </div>
+  <div id="alertBanner" class="alerts"></div>
+  <div class="card-grid g2">
+    <div class="card"><div class="card-lbl">收入 by 客戶</div><div id="ov-clients"><div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">未有數據</div></div></div></div>
+    <div class="card"><div class="card-lbl">支出 by 類別</div><div id="ov-cats"><div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">未有數據</div></div></div></div>
+  </div>
+</div>
+
+<!-- ══ PROJECTS ══ -->
+<div class="panel" id="panel-projects">
+  <div class="form-box">
+    <div class="form-title">＋ 新增 Project</div>
+    <div class="fg fg2">
+      <div class="f"><label>客戶名稱</label><input type="text" id="pj-client" placeholder="例：Coca-Cola HK"></div>
+      <div class="f"><label>Project 名稱</label><input type="text" id="pj-name" placeholder="例：2025 Brand Refresh"></div>
+      <div class="f"><label>Quotation No.</label><input type="text" id="pj-qt" placeholder="例：QT-CCH-2025-001"></div>
+      <div class="f"><label>Quotation 總額 (HKD)</label><input type="number" id="pj-total" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="f"><label>狀態</label>
+        <select id="pj-status">
+          <option value="進行中">🟡 進行中</option>
+          <option value="完成">🟢 完成</option>
+          <option value="暫停">🔴 暫停</option>
+        </select>
+      </div>
+      <div class="f full"><label>備註</label><textarea id="pj-note" placeholder="Project 簡介或備忘"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="clearPjForm()">清除</button>
+      <button class="btn btn-primary" id="btnAddPj" onclick="addProject()">確認加入</button>
+    </div>
+  </div>
+
+  <div class="sec-hdr">
+    <div class="sec-title">所有 Projects</div>
+    <div class="filters">
+      <select class="fsel" id="pj-filter-status" onchange="renderProjects()">
+        <option value="">全部狀態</option>
+        <option value="進行中">進行中</option>
+        <option value="完成">完成</option>
+        <option value="暫停">暫停</option>
+      </select>
+      <select class="fsel" id="pj-filter-client" onchange="renderProjects()">
+        <option value="">全部客戶</option>
+      </select>
+    </div>
+  </div>
+  <div id="projGrid" class="proj-grid"></div>
+
+  <!-- Project Detail -->
+  <div id="projDetail" style="display:none">
+    <div class="proj-detail">
+      <div class="proj-detail-hdr">
+        <div>
+          <div class="proj-detail-name" id="pd-name">—</div>
+          <div class="proj-detail-client" id="pd-client">—</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div id="pd-status-badge"></div>
+          <button class="btn btn-ghost btn-sm" onclick="hideProjDetail()">← 返回</button>
+        </div>
+      </div>
+      <div class="pnl-bar" style="grid-template-columns:repeat(6,1fr)">
+        <div class="pnl-item"><div class="pnl-lbl">QT 總額</div><div class="pnl-val amblue" id="pd-total">HK$0</div></div>
+        <div class="pnl-item"><div class="pnl-lbl">已收款</div><div class="pnl-val amint" id="pd-inc">HK$0</div></div>
+        <div class="pnl-item"><div class="pnl-lbl">待收款</div><div class="pnl-val" style="color:var(--amber);font-size:22px;font-weight:700" id="pd-pending">HK$0</div></div>
+        <div class="pnl-item"><div class="pnl-lbl">Vendor 支出</div><div class="pnl-val amred" id="pd-vexp">HK$0</div></div>
+        <div class="pnl-item"><div class="pnl-lbl">雜費</div><div class="pnl-val amred" id="pd-misc">HK$0</div></div>
+        <div class="pnl-item"><div class="pnl-lbl">Net Margin</div><div class="pnl-val amblue" id="pd-net">HK$0</div></div>
+      </div>
+
+      <!-- Income section -->
+      <div class="sub-sec">
+        <div class="sub-sec-title">收入記錄</div>
+        <div id="pd-income-list"></div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- Vendor section -->
+      <div class="sub-sec">
+        <div class="sub-sec-title">Vendor 支出</div>
+        <div id="pd-vendor-list"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="openAddVendorModal()">＋ 加入 Vendor</button>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- Misc expense section -->
+      <div class="sub-sec">
+        <div class="sub-sec-title">Project 雜費（交通 / 餐飲等）</div>
+        <div id="pd-misc-list"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="openAddMiscModal()">＋ 加入雜費</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ INCOME ══ -->
+<div class="panel" id="panel-income">
+  <div class="form-box">
+    <div class="form-title">＋ 新增收入</div>
+    <div class="fg fg2">
+      <div class="f"><label>客戶名稱</label><input type="text" id="in-client" placeholder="例：Coca-Cola HK"></div>
+      <div class="f"><label>Project</label><select id="in-project" onchange="onProjectSelect()"><option value="">— 選擇 Project —</option></select></div>
+      <div class="f"><label>服務類型</label>
+        <select id="in-type">
+          <option value="顧問服務費">顧問服務費</option>
+          <option value="策略規劃費">策略規劃費</option>
+          <option value="市場推廣費">市場推廣費</option>
+          <option value="項目管理費">項目管理費</option>
+          <option value="培訓費">培訓費</option>
+          <option value="授權費/版稅">授權費/版稅</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
+      <div class="f"><label>Quotation No.（揀 Project 自動填入）</label><input type="text" id="in-qt" placeholder="例：QT-CCH-2025-001"></div>
+      <div class="f"><label>合約總金額 (HKD)</label><input type="number" id="in-total" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="f"><label>Pre-incorporation?</label>
+        <select id="in-preinc"><option value="否">否</option><option value="是">是（BR前）</option></select>
+      </div>
+    </div>
+
+    <div style="background:var(--s2);border-radius:10px;padding:16px;margin:12px 0">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">DEPOSIT</div>
+      <div class="fg fg2">
+        <div class="f"><label>Deposit Invoice No.</label><input type="text" id="in-dep-inv" placeholder="例：INV-DEP-001"></div>
+        <div class="f"><label>Deposit 金額 (HKD)</label><input type="number" id="in-dep-amount" placeholder="0.00" min="0" step="0.01"></div>
+        <div class="f"><label>預計收款日</label><input type="date" id="in-dep-duedate"></div>
+        <div class="f"><label>收款狀態</label>
+          <select id="in-dep-status">
+            <option value="待收款">🟡 待收款</option>
+            <option value="已收款">🟢 已收款</option>
+          </select>
+        </div>
+        <div class="f"><label>實際收款日（已收時填）</label><input type="date" id="in-dep-received"></div>
+        <div class="f"><label>收款帳戶</label>
+          <select id="in-dep-acct">
+            <option value="Hang Seng">Hang Seng</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--s2);border-radius:10px;padding:16px;margin:12px 0">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">BALANCE</div>
+      <div class="fg fg2">
+        <div class="f"><label>Balance Invoice No.</label><input type="text" id="in-bal-inv" placeholder="例：INV-BAL-001"></div>
+        <div class="f"><label>Balance 金額 (HKD)</label><input type="number" id="in-bal-amount" placeholder="0.00" min="0" step="0.01"></div>
+        <div class="f"><label>預計收款日</label><input type="date" id="in-bal-duedate"></div>
+        <div class="f"><label>收款狀態</label>
+          <select id="in-bal-status">
+            <option value="待收款">🟡 待收款</option>
+            <option value="已收款">🟢 已收款</option>
+          </select>
+        </div>
+        <div class="f"><label>實際收款日（已收時填）</label><input type="date" id="in-bal-received"></div>
+        <div class="f"><label>收款帳戶</label>
+          <select id="in-bal-acct">
+            <option value="Hang Seng">Hang Seng</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg fg2">
+      <div class="f full"><label>備註</label><textarea id="in-note" placeholder="例：Q1 品牌策略顧問服務"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="clearInForm()">清除</button>
+      <button class="btn btn-primary" id="btnAddIn" onclick="addIncome()">確認加入</button>
+    </div>
+  </div>
+
+  <div class="sec-hdr">
+    <div class="sec-title">收入記錄</div>
+    <div class="filters">
+      <select class="fsel" id="in-f-client" onchange="renderIncome()"><option value="">全部客戶</option></select>
+      <select class="fsel" id="in-f-status" onchange="renderIncome()">
+        <option value="">全部狀態</option>
+        <option value="待收款">🟡 有待收款</option>
+        <option value="已收款">🟢 全數已收</option>
+      </select>
+    </div>
+  </div>
+  <div id="inCards"><div class="empty"><div class="empty-ico">💰</div><div class="empty-txt">載入中...</div></div></div>
+</div>
+
+<!-- ══ EXPENSE ══ -->
+<div class="panel" id="panel-expense">
+
+  <!-- OPS Expenses -->
+  <div class="form-box">
+    <div class="form-title">＋ 新增公司營運支出（General Overhead）</div>
+    <div class="fg fg2">
+      <div class="f"><label>日期</label><input type="date" id="ops-date"></div>
+      <div class="f"><label>金額 (HKD)</label><input type="number" id="ops-amount" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="f full"><label>支出類別</label>
+        <select id="ops-cat">
+          <optgroup label="🚗 交通出行">
+            <option value="交通出行 — MTR／巴士">MTR／巴士</option>
+            <option value="交通出行 — 的士／Uber">的士／Uber</option>
+            <option value="交通出行 — 跨境交通">跨境交通</option>
+            <option value="交通出行 — 停車費">停車費</option>
+          </optgroup>
+          <optgroup label="🍽️ 餐飲娛樂">
+            <option value="餐飲娛樂 — 客戶飯局">客戶飯局</option>
+            <option value="餐飲娛樂 — 業務洽談">業務洽談咖啡</option>
+            <option value="餐飲娛樂 — 會議餐飲">會議餐飲</option>
+          </optgroup>
+          <optgroup label="💻 軟件訂閱">
+            <option value="軟件訂閱 — 創意工具">創意工具（Adobe/Canva）</option>
+            <option value="軟件訂閱 — AI工具">AI 工具（ChatGPT等）</option>
+            <option value="軟件訂閱 — 網域/Hosting">網域／Hosting</option>
+            <option value="軟件訂閱 — 協作工具">協作工具</option>
+            <option value="軟件訂閱 — 其他">其他軟件</option>
+          </optgroup>
+          <optgroup label="📱 通訊費用">
+            <option value="通訊費用 — 電話費">電話費</option>
+            <option value="通訊費用 — 網絡費">網絡費</option>
+          </optgroup>
+          <optgroup label="🖨️ 辦公用品">
+            <option value="辦公用品 — 文具打印">文具／打印</option>
+            <option value="辦公用品 — 名片印刷">名片印刷</option>
+            <option value="辦公用品 — 其他">其他</option>
+          </optgroup>
+          <optgroup label="📚 進修學習">
+            <option value="進修學習 — 展會門票">展會門票</option>
+            <option value="進修學習 — 課程培訓">課程培訓</option>
+            <option value="進修學習 — 書籍資料">書籍資料</option>
+            <option value="進修學習 — 行業活動">行業活動</option>
+          </optgroup>
+          <optgroup label="🏢 辦公室費用">
+            <option value="辦公室費用 — 虛擬辦公室">虛擬辦公室（將軍會計）</option>
+            <option value="辦公室費用 — 會議室">會議室租用</option>
+            <option value="辦公室費用 — 其他">其他</option>
+          </optgroup>
+          <optgroup label="💼 專業服務">
+            <option value="專業服務 — 會計費">會計費</option>
+            <option value="專業服務 — 核數師費">核數師費</option>
+            <option value="專業服務 — 法律諮詢">法律諮詢</option>
+            <option value="專業服務 — 銀行費用">銀行費用</option>
+          </optgroup>
+          <optgroup label="📣 市場推廣">
+            <option value="市場推廣 — 廣告投放">廣告投放</option>
+            <option value="市場推廣 — 印刷品">印刷品</option>
+            <option value="市場推廣 — 禮品">禮品</option>
+            <option value="市場推廣 — 其他">其他</option>
+          </optgroup>
+          <optgroup label="其他"><option value="其他">其他支出</option></optgroup>
+        </select>
+      </div>
+      <div class="f"><label>付款方式</label>
+        <select id="ops-pay">
+          <option value="Aspire">Aspire</option>
+          <option value="其他信用卡">其他信用卡</option>
+          <option value="現金">現金</option>
+          <option value="八達通">八達通</option>
+          <option value="轉數快">轉數快</option>
+          <option value="Hang Seng">Hang Seng</option>
+        </select>
+      </div>
+      <div class="f"><label>收據編號（選填）</label><input type="text" id="ops-rec" placeholder="例：R-2025-001"></div>
+      <div class="f"><label>Pre-incorporation?</label>
+        <select id="ops-preinc"><option value="否">否</option><option value="是">是（BR前）</option></select>
+      </div>
+      <div class="f full"><label>備註</label><textarea id="ops-note" placeholder="例：出席明報展會，業務拓展，中環→灣仔"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="clearOpsForm()">清除</button>
+      <button class="btn btn-primary" id="btnAddOps" onclick="addOpsExpense()">確認加入</button>
+    </div>
+  </div>
+
+  <div class="sec-hdr">
+    <div class="sec-title">公司營運支出記錄</div>
+    <div class="filters">
+      <select class="fsel" id="ops-f-month" onchange="renderOps()"><option value="">全部月份</option></select>
+      <select class="fsel" id="ops-f-cat" onchange="renderOps()">
+        <option value="">全部類別</option>
+        <option value="交通出行">交通出行</option>
+        <option value="餐飲娛樂">餐飲娛樂</option>
+        <option value="軟件訂閱">軟件訂閱</option>
+        <option value="通訊費用">通訊費用</option>
+        <option value="辦公用品">辦公用品</option>
+        <option value="進修學習">進修學習</option>
+        <option value="辦公室費用">辦公室費用</option>
+        <option value="專業服務">專業服務</option>
+        <option value="市場推廣">市場推廣</option>
+      </select>
+      <select class="fsel" id="ops-f-pay" onchange="renderOps()">
+        <option value="">全部付款方式</option>
+        <option value="Aspire">Aspire</option>
+        <option value="其他信用卡">其他信用卡</option>
+        <option value="現金">現金</option>
+      </select>
+    </div>
+  </div>
+  <table class="tbl" style="margin-bottom:32px">
+    <thead><tr><th>日期</th><th>類別</th><th>付款方式</th><th>金額</th><th>備註</th><th></th></tr></thead>
+    <tbody id="opsTbody"><tr><td colspan="6"><div class="empty"><div class="empty-ico">🧾</div><div class="empty-txt">載入中...</div></div></td></tr></tbody>
+  </table>
+</div>
+
+<!-- ══ REPORT ══ -->
+<div class="panel" id="panel-report">
+  <div class="export-row">
+    <button class="btn-export" onclick="exportCSV()">📥 匯出 CSV</button>
+  </div>
+  <div class="card-grid g3" style="margin-bottom:22px">
+    <div class="card"><div class="card-lbl">總收入</div><div class="card-val mint" id="rpt-inc">HK$0</div></div>
+    <div class="card"><div class="card-lbl">總支出</div><div class="card-val red" id="rpt-exp">HK$0</div></div>
+    <div class="card"><div class="card-lbl">應課稅利潤</div><div class="card-val blue" id="rpt-net">HK$0</div><div class="card-sub" id="rpt-tax">預計利得稅: HK$0</div></div>
+  </div>
+  <div class="card-grid g2">
+    <div class="card"><div class="card-lbl">支出類別明細</div><div id="rpt-exp-bk"><div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">未有數據</div></div></div></div>
+    <div class="card"><div class="card-lbl">收入來源明細</div><div id="rpt-inc-bk"><div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">未有數據</div></div></div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><div class="card-lbl">Project P&L 一覽</div><div id="rpt-proj-pnl"><div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">未有數據</div></div></div></div>
+  <div class="card" style="margin-top:14px"><div class="card-lbl">Pre-incorporation 費用</div><div id="rpt-preinc"><div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">未有記錄</div></div></div></div>
+</div>
+
+</div><!-- /page -->
+
+<!-- MODALS -->
+<div class="modal-bg" id="modalVendor">
+  <div class="modal">
+    <div class="modal-title">＋ 加入 Vendor 支出</div>
+    <div class="fg fg2">
+      <div class="f"><label>Vendor 名稱</label><input type="text" id="v-name" placeholder="例：Keith Design Studio"></div>
+      <div class="f"><label>服務類型</label>
+        <select id="v-type">
+          <option value="攝影／攝錄">攝影／攝錄</option>
+          <option value="設計外判">設計外判</option>
+          <option value="印刷製作">印刷製作</option>
+          <option value="活動製作">活動製作</option>
+          <option value="媒體採購">媒體採購</option>
+          <option value="PR服務">PR 服務</option>
+          <option value="其他外判">其他外判</option>
+        </select>
+      </div>
+      <div class="f"><label>Vendor Quotation No.</label><input type="text" id="v-qt" placeholder="例：VQ-2025-001"></div>
+      <div class="f"><label>Vendor 總金額 (HKD)</label><input type="number" id="v-total" placeholder="0.00" min="0" step="0.01"></div>
+    </div>
+
+    <div style="background:var(--s2);border-radius:10px;padding:16px;margin:12px 0">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">DEPOSIT</div>
+      <div class="fg fg2">
+        <div class="f"><label>Deposit Invoice No.</label><input type="text" id="v-dep-inv" placeholder="例：VINV-DEP-001"></div>
+        <div class="f"><label>Deposit 金額 (HKD)</label><input type="number" id="v-dep-amount" placeholder="0.00" min="0" step="0.01"></div>
+        <div class="f"><label>付款 Deadline</label><input type="date" id="v-dep-deadline"></div>
+        <div class="f"><label>付款狀態</label>
+          <select id="v-dep-status">
+            <option value="待付">🔴 待付</option>
+            <option value="已付">🟢 已付</option>
+          </select>
+        </div>
+        <div class="f"><label>付款日期（已付時填）</label><input type="date" id="v-dep-date"></div>
+        <div class="f"><label>付款方式</label>
+          <select id="v-dep-pay">
+            <option value="Aspire">Aspire</option>
+            <option value="其他信用卡">其他信用卡</option>
+            <option value="轉數快">轉數快</option>
+            <option value="Hang Seng">Hang Seng</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--s2);border-radius:10px;padding:16px;margin:12px 0">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">BALANCE</div>
+      <div class="fg fg2">
+        <div class="f"><label>Balance Invoice No.</label><input type="text" id="v-bal-inv" placeholder="例：VINV-BAL-001"></div>
+        <div class="f"><label>Balance 金額 (HKD)</label><input type="number" id="v-bal-amount" placeholder="0.00" min="0" step="0.01"></div>
+        <div class="f"><label>付款 Deadline</label><input type="date" id="v-bal-deadline"></div>
+        <div class="f"><label>付款狀態</label>
+          <select id="v-bal-status">
+            <option value="待付">🔴 待付</option>
+            <option value="已付">🟢 已付</option>
+          </select>
+        </div>
+        <div class="f"><label>付款日期（已付時填）</label><input type="date" id="v-bal-date"></div>
+        <div class="f"><label>付款方式</label>
+          <select id="v-bal-pay">
+            <option value="Aspire">Aspire</option>
+            <option value="其他信用卡">其他信用卡</option>
+            <option value="轉數快">轉數快</option>
+            <option value="Hang Seng">Hang Seng</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg fg2">
+      <div class="f full"><label>備註</label><textarea id="v-note" placeholder="備註"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modalVendor')">取消</button>
+      <button class="btn btn-primary" id="btnSaveV" onclick="saveVendor()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalMisc">
+  <div class="modal">
+    <div class="modal-title">＋ 加入 Project 雜費</div>
+    <div class="fg fg2">
+      <div class="f"><label>日期</label><input type="date" id="m-date"></div>
+      <div class="f"><label>金額 (HKD)</label><input type="number" id="m-amount" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="f full"><label>類別</label>
+        <select id="m-cat">
+          <option value="交通出行 — MTR／巴士">交通 — MTR／巴士</option>
+          <option value="交通出行 — 的士／Uber">交通 — 的士／Uber</option>
+          <option value="餐飲娛樂 — 客戶飯局">餐飲 — 客戶飯局</option>
+          <option value="餐飲娛樂 — 工作餐">餐飲 — 工作餐</option>
+          <option value="辦公用品 — 打印">打印／文具</option>
+          <option value="其他 Project 雜費">其他雜費</option>
+        </select>
+      </div>
+      <div class="f"><label>付款方式</label>
+        <select id="m-pay">
+          <option value="Aspire">Aspire</option>
+          <option value="其他信用卡">其他信用卡</option>
+          <option value="現金">現金</option>
+          <option value="八達通">八達通</option>
+        </select>
+      </div>
+      <div class="f"><label>收據編號（選填）</label><input type="text" id="m-rec" placeholder="選填"></div>
+      <div class="f full"><label>備註</label><textarea id="m-note" placeholder="例：去 Coca-Cola 開會，中環 MTR"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modalMisc')">取消</button>
+      <button class="btn btn-primary" id="btnSaveM" onclick="saveMisc()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalEditIncome" style="overflow-x:hidden">
+  <div class="modal">
+    <div class="modal-title">✏️ 編輯收入</div>
+    <div class="fg fg2">
+      <div class="f"><label>日期</label><input type="date" id="ei-date"></div>
+      <div class="f"><label>金額</label><input type="number" id="ei-amount" min="0" step="0.01"></div>
+      <div class="f"><label>客戶</label><input type="text" id="ei-client"></div>
+      <div class="f"><label>Project</label><select id="ei-project"><option value="">— 選擇 —</option></select></div>
+      <div class="f"><label>收款類型</label>
+        <select id="ei-ptype"><option value="全數收入">全數收入</option><option value="Deposit">Deposit</option><option value="Balance">Balance</option></select>
+      </div>
+      <div class="f"><label>服務類型</label>
+        <select id="ei-type"><option value="顧問服務費">顧問服務費</option><option value="策略規劃費">策略規劃費</option><option value="市場推廣費">市場推廣費</option><option value="項目管理費">項目管理費</option><option value="培訓費">培訓費</option><option value="其他">其他</option></select>
+      </div>
+      <div class="f"><label>Quotation No.</label><input type="text" id="ei-qt"></div>
+      <div class="f"><label>Invoice No.</label><input type="text" id="ei-inv"></div>
+      <div class="f"><label>收款帳戶</label><select id="ei-acct"><option value="Hang Seng">Hang Seng</option><option value="其他">其他</option></select></div>
+      <div class="f"><label>Pre-inc?</label><select id="ei-preinc"><option value="否">否</option><option value="是">是</option></select></div>
+      <div class="f"><label>收款狀態</label><select id="ei-recstatus"><option value="待收款">🟡 待收款</option><option value="已收款">🟢 已收款</option></select></div>
+      <div class="f full"><label>備註</label><textarea id="ei-note"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modalEditIncome')">取消</button>
+      <button class="btn btn-primary" id="btnSaveEI" onclick="saveEditIncome()">儲存更改</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalEditOps">
+  <div class="modal">
+    <div class="modal-title">✏️ 編輯支出</div>
+    <div class="fg fg2">
+      <div class="f"><label>日期</label><input type="date" id="eo-date"></div>
+      <div class="f"><label>金額</label><input type="number" id="eo-amount" min="0" step="0.01"></div>
+      <div class="f full"><label>類別</label><select id="eo-cat">
+        <optgroup label="🚗 交通出行"><option value="交通出行 — MTR／巴士">MTR／巴士</option><option value="交通出行 — 的士／Uber">的士／Uber</option><option value="交通出行 — 跨境交通">跨境交通</option></optgroup>
+        <optgroup label="🍽️ 餐飲娛樂"><option value="餐飲娛樂 — 客戶飯局">客戶飯局</option><option value="餐飲娛樂 — 業務洽談">業務洽談</option></optgroup>
+        <optgroup label="💻 軟件訂閱"><option value="軟件訂閱 — 創意工具">創意工具</option><option value="軟件訂閱 — AI工具">AI 工具</option><option value="軟件訂閱 — 網域/Hosting">網域/Hosting</option><option value="軟件訂閱 — 其他">其他軟件</option></optgroup>
+        <optgroup label="💼 專業服務"><option value="專業服務 — 會計費">會計費</option><option value="專業服務 — 銀行費用">銀行費用</option></optgroup>
+        <optgroup label="🏢 辦公室費用"><option value="辦公室費用 — 虛擬辦公室">虛擬辦公室</option><option value="辦公室費用 — 其他">其他</option></optgroup>
+        <optgroup label="其他"><option value="其他">其他</option></optgroup>
+      </select></div>
+      <div class="f"><label>付款方式</label><select id="eo-pay"><option value="Aspire">Aspire</option><option value="其他信用卡">其他信用卡</option><option value="現金">現金</option><option value="八達通">八達通</option></select></div>
+      <div class="f"><label>收據編號</label><input type="text" id="eo-rec"></div>
+      <div class="f"><label>Pre-inc?</label><select id="eo-preinc"><option value="否">否</option><option value="是">是</option></select></div>
+      <div class="f full"><label>備註</label><textarea id="eo-note"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modalEditOps')">取消</button>
+      <button class="btn btn-primary" id="btnSaveEO" onclick="saveEditOps()">儲存更改</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbzP9j95dCOw6o9-e5f_lPXyCCbQ0cUnyn5LN6OHBdRRM2gmcxPIvAARDxLWnDwPXt4CIA/exec';
+const PASS = 'Flux$2026';
+
+let D = { projects:[], income:[], vendors:[], projectExpenses:[], opsExpenses:[] };
+let activeProjId = null;
+let editingIncomeId = null;
+let editingOpsId = null;
+
+// ── AUTH ──
+function doLogin() {
+  if (document.getElementById('loginPw').value === PASS) {
+    sessionStorage.setItem('fa','1');
+    const w = document.getElementById('loginWrap');
+    w.classList.add('gone');
+    setTimeout(()=>w.style.display='none',400);
+    document.getElementById('loginErr').textContent='';
+    initApp();
+  } else {
+    document.getElementById('loginErr').textContent='密碼錯誤，請再試';
+    document.getElementById('loginPw').value='';
+    document.getElementById('loginPw').focus();
+  }
+}
+
+// ── SYNC ──
+function setSyncStatus(state,msg){ const el=document.getElementById('syncPill'); el.className='sync-pill sync-'+state; el.textContent=msg; }
+
+async function apiCall(params) {
+  const url=new URL(API);
+  Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
+  const res=await fetch(url.toString());
+  return res.json();
+}
+
+async function loadAll() {
+  setSyncStatus('busy','⟳ 同步中...');
+  try {
+    const rAll=await apiCall({action:'getAll'});
+    if(rAll.success){
+      D.projects        =(r.projects||[]).map(normalizeProject);
+      D.income          =(r.income||[]).map(normalizeIncome);
+      D.vendors         =(r.vendors||[]).map(normalizeVendor);
+      D.projectExpenses =(r.projectExpenses||[]).map(normalizePE);
+      D.opsExpenses     =(r.opsExpenses||[]).map(normalizeOps);
+      setSyncStatus('ok','● 已同步');
+      return true;
+    } else { setSyncStatus('err','✕ 同步失敗'); return false; }
+  } catch(e){ setSyncStatus('err','✕ 網絡錯誤'); return false; }
+}
+
+// ── NORMALIZE ──
+function cd(d){ return d?String(d).slice(0,10):''; }
+function normalizeProject(r){ return { id:String(r.id||''), client:String(r.client||''), name:String(r.name||''), qt:String(r.qt||r.QT||''), total:parseFloat(r.total||r.TOTAL||r['Quotation 總額']||0), status:String(r.status||r.STATUS||'進行中'), note:String(r.note||r.NOTE||'') }; }
+function normalizeIncome(r){ 
+  // Support both old format (single entry) and new format (dep+bal card)
+  const isNew = r.depInv !== undefined || r.depAmount !== undefined || r.balInv !== undefined;
+  if (isNew) {
+    return {
+      id:String(r.id||''), projectId:String(r.projectId||''), client:String(r.client||''),
+      type:String(r.type||r.serviceType||''), qt:String(r.qt||''),
+      total:parseFloat(r.total||0),
+      depInv:String(r.depInv||''), depAmount:parseFloat(r.depAmount||0),
+      depDueDate:cd(r.depDueDate), depStatus:String(r.depStatus||'待收款'),
+      depReceivedDate:cd(r.depReceivedDate), depAcct:String(r.depAcct||'Hang Seng'),
+      balInv:String(r.balInv||''), balAmount:parseFloat(r.balAmount||0),
+      balDueDate:cd(r.balDueDate), balStatus:String(r.balStatus||'待收款'),
+      balReceivedDate:cd(r.balReceivedDate), balAcct:String(r.balAcct||'Hang Seng'),
+      preinc:String(r.preinc||'否'), note:String(r.note||''), _format:'new'
+    };
+  }
+  // Old format - convert for display
+  return {
+    id:String(r.id||''), projectId:String(r.projectId||''), client:String(r.client||''),
+    type:String(r.type||''), qt:String(r.qt||''),
+    total:parseFloat(r.amount||0),
+    depInv:String(r.invoice||''), depAmount:parseFloat(r.paymentType==='Deposit'?r.amount:0),
+    depDueDate:'', depStatus:String(r.recstatus||'待收款'),
+    depReceivedDate:'', depAcct:String(r.acct||'Hang Seng'),
+    balInv:'', balAmount:parseFloat(r.paymentType==='Balance'?r.amount:(r.paymentType==='全數收入'?r.amount:0)),
+    balDueDate:'', balStatus:r.paymentType==='Balance'?String(r.recstatus||'待收款'):'待收款',
+    balReceivedDate:'', balAcct:String(r.acct||'Hang Seng'),
+    preinc:String(r.preinc||'否'), note:String(r.note||''), _format:'old'
+  };
+}
+function normalizeVendor(r){ return { 
+    id:String(r.id||''), projectId:String(r.projectId||''), name:String(r.name||''), type:String(r.type||''), qt:String(r.qt||''),
+    total:parseFloat(r.total||0),
+    depInv:String(r.depInv||''), depAmount:parseFloat(r.depAmount||0), depDeadline:cd(r.depDeadline), depStatus:String(r.depStatus||'待付'), depDate:cd(r.depDate), depPay:String(r.depPay||'Aspire'),
+    balInv:String(r.balInv||''), balAmount:parseFloat(r.balAmount||0), balDeadline:cd(r.balDeadline), balStatus:String(r.balStatus||'待付'), balDate:cd(r.balDate), balPay:String(r.balPay||'Aspire'),
+    note:String(r.note||'')
+  }; }
+function normalizePE(r){ return { id:String(r.id||''), projectId:String(r.projectId||''), date:cd(r.date), amount:parseFloat(r.amount||0), category:String(r.category||''), payment:String(r.payment||'Aspire'), receipt:String(r.receipt||''), note:String(r.note||'') }; }
+function normalizeOps(r){ return { id:String(r.id||''), date:cd(r.date), amount:parseFloat(r.amount||0), category:String(r.category||''), payment:String(r.payment||'Aspire'), receipt:String(r.receipt||''), preinc:String(r.preinc||'否'), note:String(r.note||'') }; }
+
+// ── TABS ──
+function goTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('panel-'+tab).classList.add('on');
+  if(tab==='overview') renderOverview();
+  if(tab==='projects'){ populateClientFilter(); renderProjects(); }
+  if(tab==='income'){ populateInFilters(); populateProjectSelect('in-project'); renderIncome(); }
+  if(tab==='expense'){ populateOpsFilter(); renderOps(); }
+  if(tab==='report') renderReport();
+}
+
+// ── HELPERS ──
+function fmtHKD(n){ return 'HK$'+Number(n).toLocaleString('en-HK',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function catShort(c){ return c.split(' — ')[0]; }
+function catDetail(c){ const p=c.split(' — '); return p.length>1?p[1]:c; }
+function monthKey(d){ return d?d.slice(0,7):''; }
+function monthLabel(d){ if(!d) return ''; const x=new Date(d+'T00:00:00'); return x.getFullYear()+'年'+String(x.getMonth()+1).padStart(2,'0')+'月'; }
+function projName(id){ const p=D.projects.find(x=>x.id===id); return p?p.name:'—'; }
+function statusBadge(s){ if(s==='進行中') return '<span class="badge badge-amber">🟡 進行中</span>'; if(s==='完成') return '<span class="badge badge-mint">🟢 完成</span>'; return '<span class="badge badge-red">🔴 暫停</span>'; }
+function ptBadge(t){ if(t==='Deposit') return '<span class="badge badge-amber">Deposit</span>'; if(t==='Balance') return '<span class="badge badge-blue">Balance</span>'; return '<span class="badge badge-mint">全數</span>'; }
+function recStatusBadge(s){ 
+  if(s==='已收款') return '<span class="badge badge-mint">🟢 已收款</span>'; 
+  return '<span class="badge badge-amber">🟡 待收款</span>'; 
+}
+function payBadge(s){ if(s.includes('已付')) return '<span class="badge badge-mint">'+s+'</span>'; return '<span class="badge badge-red">'+s+'</span>'; }
+function empty(ico,txt){ return `<div class="empty"><div class="empty-ico">${ico}</div><div class="empty-txt">${txt}</div></div>`; }
+
+function populateProjectSelect(selId, val=''){
+  const sel=document.getElementById(selId);
+  sel.innerHTML='<option value="">— 選擇 Project —</option>'+D.projects.map(p=>`<option value="${p.id}" ${p.id===val?'selected':''}>${p.client} · ${p.name}</option>`).join('');
+}
+function populateClientFilter(){
+  const clients=[...new Set(D.projects.map(p=>p.client))].sort();
+  const sel=document.getElementById('pj-filter-client');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">全部客戶</option>'+clients.map(c=>`<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('');
+}
+function populateInFilters(){
+  const clients=[...new Set(D.income.map(r=>r.client))].sort();
+  const cs=document.getElementById('in-f-client'), cc=cs.value;
+  cs.innerHTML='<option value="">全部客戶</option>'+clients.map(c=>`<option value="${c}" ${c===cc?'selected':''}>${c}</option>`).join('');
+}
+function populateOpsFilter(){
+  const months=[...new Set(D.opsExpenses.map(r=>monthKey(r.date)))].sort().reverse();
+  const sel=document.getElementById('ops-f-month'), cur=sel.value;
+  sel.innerHTML='<option value="">全部月份</option>'+months.map(m=>`<option value="${m}" ${m===cur?'selected':''}>${m.replace('-','年')}月</option>`).join('');
+}
+
+// ── OVERVIEW ──
+function renderOverview(){
+  const tI=D.income.reduce((s,r)=>s+(r.depAmount||0)+(r.balAmount||0),0);
+  const tV=D.vendors.reduce((s,r)=>s+(r.total>0?r.total:(r.depAmount||0)+(r.balAmount||0)),0);
+  const tPE=D.projectExpenses.reduce((s,r)=>s+r.amount,0);
+  const tOps=D.opsExpenses.reduce((s,r)=>s+r.amount,0);
+  const tE=tV+tPE+tOps;
+  const net=tI-tE;
+  const tax=net>0?(Math.min(net,2000000)*0.0825+Math.max(0,net-2000000)*0.165):0;
+
+  document.getElementById('ov-inc').textContent=fmtHKD(tI);
+  document.getElementById('ov-exp').textContent=fmtHKD(tE);
+  document.getElementById('ov-net').textContent=fmtHKD(net);
+  document.getElementById('ov-inc-sub').textContent=D.income.length+' 筆';
+  document.getElementById('ov-exp-sub').textContent=(D.vendors.length+D.projectExpenses.length+D.opsExpenses.length)+' 筆';
+  document.getElementById('ov-tax').textContent='預計稅: '+fmtHKD(tax);
+
+  // Pending income (待收款)
+  const pendingInc=D.income.filter(r=>r.depStatus!=='已收款'||r.balStatus!=='已收款');
+  const pendingAmt=D.income.reduce((s,r)=>s+(r.depStatus!=='已收款'?r.depAmount:0)+(r.balStatus!=='已收款'?r.balAmount:0),0);
+  document.getElementById('ov-unbal').textContent=fmtHKD(pendingAmt);
+  document.getElementById('ov-unbal-sub').textContent=pendingInc.length+' 筆待收款';
+
+  // Unpaid vendors
+  const unpaidV=D.vendors.filter(r=>r.depStatus==='待付'||r.balStatus==='待付');
+  const unpaidVAmt=D.vendors.reduce((s,r)=>{ const depUnpaid=r.depStatus==='待付'?(r.depAmount||0):0; const balUnpaid=r.balStatus==='待付'?(r.balAmount||0):0; return s+depUnpaid+balUnpaid; },0);
+  document.getElementById('ov-unpay').textContent=fmtHKD(unpaidVAmt);
+  document.getElementById('ov-unpay-sub').textContent=unpaidV.length+' 個Vendor待付';
+
+  document.getElementById('ov-proj').textContent=D.projects.filter(p=>p.status==='進行中').length;
+
+  // Alerts
+  const alerts=[];
+  if(pendingInc.length>0) alerts.push(`<div class="alert alert-amber"><span class="alert-icon">⚠️</span> ${pendingInc.length} 筆收入待收款（${fmtHKD(pendingAmt)}）</div>`);
+  if(unpaidVAmt>0) alerts.push(`<div class="alert alert-red"><span class="alert-icon">🔴</span> ${unpaidV.length} 個 Vendor 費用待付（${fmtHKD(unpaidVAmt)}）</div>`);
+  document.getElementById('alertBanner').innerHTML=alerts.join('');
+
+  // Clients breakdown
+  const clients={};
+  D.income.forEach(r=>{ clients[r.client]=(clients[r.client]||0)+(r.depAmount||0)+(r.balAmount||0); });
+  const sc=Object.entries(clients).sort((a,b)=>b[1]-a[1]), mc2=sc[0]?.[1]||1;
+  document.getElementById('ov-clients').innerHTML=sc.length
+    ?sc.map(([n,a])=>`<div class="bk-row"><div><div class="bk-name">${n}</div><div class="prog-bar"><div class="prog-fill" style="width:${(a/mc2*100).toFixed(0)}%;background:var(--mint)"></div></div></div><div class="bk-amt amint">${fmtHKD(a)}</div></div>`).join('')
+    :empty('📊','未有數據');
+
+  // Category breakdown (ops only)
+  const cats={};
+  D.opsExpenses.forEach(r=>{ const c=catShort(r.category); cats[c]=(cats[c]||0)+r.amount; });
+  D.vendors.forEach(r=>{ cats['第三方Vendor']=(cats['第三方Vendor']||0)+(r.total>0?r.total:(r.depAmount||0)+(r.balAmount||0)); });
+  D.projectExpenses.forEach(r=>{ const c=catShort(r.category); cats[c]=(cats[c]||0)+r.amount; });
+  const st=Object.entries(cats).sort((a,b)=>b[1]-a[1]), mt=st[0]?.[1]||1;
+  document.getElementById('ov-cats').innerHTML=st.length
+    ?st.map(([n,a])=>`<div class="bk-row"><div><div class="bk-name">${n}</div><div class="prog-bar"><div class="prog-fill" style="width:${(a/mt*100).toFixed(0)}%;background:var(--red)"></div></div></div><div class="bk-amt amred">${fmtHKD(a)}</div></div>`).join('')
+    :empty('📊','未有數據');
+}
+
+// ── PROJECTS ──
+function addProject(){
+  const client=document.getElementById('pj-client').value.trim();
+  const name=document.getElementById('pj-name').value.trim();
+  if(!client||!name){ alert('請填寫客戶名稱及 Project 名稱'); return; }
+  const row={ id:Date.now(), client, name, qt:document.getElementById('pj-qt').value.trim(), total:parseFloat(document.getElementById('pj-total').value||0), status:document.getElementById('pj-status').value, note:document.getElementById('pj-note').value.trim() };
+  const btn=document.getElementById('btnAddPj');
+  btn.disabled=true; btn.textContent='儲存中...';
+  setSyncStatus('busy','⟳ 儲存中...');
+  apiCall({action:'addProject',data:JSON.stringify(row)}).then(r=>{
+    if(r.success){ D.projects.push(normalizeProject(row)); setSyncStatus('ok','● 已同步'); clearPjForm(); populateClientFilter(); renderProjects(); renderOverview(); }
+    else { setSyncStatus('err','✕ 失敗'); alert('儲存失敗'); }
+    btn.disabled=false; btn.textContent='確認加入';
+  }).catch(()=>{ setSyncStatus('err','✕ 錯誤'); btn.disabled=false; btn.textContent='確認加入'; });
+}
+
+function clearPjForm(){ ['pj-client','pj-name','pj-qt','pj-total','pj-note'].forEach(i=>document.getElementById(i).value=''); }
+
+function renderProjects(){
+  const fs=document.getElementById('pj-filter-status').value;
+  const fc=document.getElementById('pj-filter-client').value;
+  let projs=D.projects.filter(p=>(!fs||p.status===fs)&&(!fc||p.client===fc));
+  const grid=document.getElementById('projGrid');
+  if(!projs.length){ grid.innerHTML=empty('📁','尚未有 Project'); return; }
+  grid.innerHTML=projs.map(p=>{
+    const allInc2=D.income.filter(r=>r.projectId===p.id);
+    const inc=allInc2.reduce((s,r)=>s+(r.depStatus==='已收款'?r.depAmount:0)+(r.balStatus==='已收款'?r.balAmount:0),0);
+    const pend=allInc2.reduce((s,r)=>s+(r.depStatus!=='已收款'?r.depAmount:0)+(r.balStatus!=='已收款'?r.balAmount:0),0);
+    const vexp=D.vendors.filter(r=>r.projectId===p.id).reduce((s,r)=>s+(r.total>0?r.total:(r.depAmount||0)+(r.balAmount||0)),0);
+    const misc=D.projectExpenses.filter(r=>r.projectId===p.id).reduce((s,r)=>s+r.amount,0);
+    const allIncTotal=allInc2.reduce((s,r)=>s+r.depAmount+r.balAmount,0);
+    const net=allIncTotal-vexp-misc;
+    return `<div class="proj-card" onclick="showProjDetail('${p.id}')">
+      <div class="proj-status">${statusBadge(p.status)}<span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim)">${p.qt||''}</span></div>
+      <div class="proj-name" style="margin-top:10px">${p.name}</div>
+      <div class="proj-client">${p.client}</div>
+      <div class="proj-pnl">
+        <div class="proj-pnl-item"><div class="proj-pnl-label">收入</div><div class="proj-pnl-val amint">${fmtHKD(inc)}</div></div>
+        <div class="proj-pnl-item"><div class="proj-pnl-label">支出</div><div class="proj-pnl-val amred">${fmtHKD(vexp+misc)}</div></div>
+        <div class="proj-pnl-item"><div class="proj-pnl-label">Net</div><div class="proj-pnl-val ${net>=0?'amint':'amred'}">${fmtHKD(net)}</div></div>
+      </div>
+      <div class="proj-actions" onclick="event.stopPropagation()">
+        <button class="btn-del-sm" onclick="deleteProject('${p.id}')">刪除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showProjDetail(id){
+  activeProjId=id;
+  const p=D.projects.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('pd-name').textContent=p.name;
+  document.getElementById('pd-client').textContent=p.client+(p.qt?' · '+p.qt:'');
+  document.getElementById('pd-status-badge').innerHTML=statusBadge(p.status);
+  renderProjDetail();
+  document.getElementById('projDetail').style.display='block';
+  document.getElementById('projDetail').scrollIntoView({behavior:'smooth'});
+}
+
+function hideProjDetail(){ document.getElementById('projDetail').style.display='none'; activeProjId=null; }
+
+function renderProjDetail(){
+  if(!activeProjId) return;
+  const id=activeProjId;
+  const p=D.projects.find(x=>x.id===id);
+  const allInc=D.income.filter(r=>r.projectId===id);
+  const received=allInc.reduce((s,r)=>s+(r.depStatus==='已收款'?r.depAmount:0)+(r.balStatus==='已收款'?r.balAmount:0),0);
+  const pending=allInc.reduce((s,r)=>s+(r.depStatus!=='已收款'?r.depAmount:0)+(r.balStatus!=='已收款'?r.balAmount:0),0);
+  const inc=allInc.reduce((s,r)=>s+r.depAmount+r.balAmount,0);
+  const vexp=D.vendors.filter(r=>r.projectId===id).reduce((s,r)=>s+(r.total>0?r.total:(r.depAmount||0)+(r.balAmount||0)),0);
+  const misc=D.projectExpenses.filter(r=>r.projectId===id).reduce((s,r)=>s+r.amount,0);
+  const net=inc-vexp-misc;
+  const qtTotal=p?p.total:0;
+  document.getElementById('pd-total').textContent=qtTotal>0?fmtHKD(qtTotal):'—';
+  document.getElementById('pd-inc').textContent=fmtHKD(received);
+  document.getElementById('pd-pending').textContent=fmtHKD(pending);
+  document.getElementById('pd-vexp').textContent=fmtHKD(vexp);
+  // Show vendor total includes committed amounts
+  document.getElementById('pd-misc').textContent=fmtHKD(misc);
+  document.getElementById('pd-net').textContent=fmtHKD(net);
+  document.getElementById('pd-net').className='pnl-val '+(net>=0?'amint':'amred');
+
+  // Income list
+  const incRecs=D.income.filter(r=>r.projectId===id).sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('pd-income-list').innerHTML=incRecs.length
+    ?incRecs.map(r=>{
+      const depOK=r.depStatus==='已收款'; const balOK=r.balStatus==='已收款';
+      const today=new Date().toISOString().slice(0,10);
+      const depOverdue=r.depDueDate&&r.depDueDate<today&&!depOK;
+      const balOverdue=r.balDueDate&&r.balDueDate<today&&!balOK;
+      return `<div style="background:var(--s2);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <div style="font-weight:600;font-size:14px">${r.client}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:3px">${r.type}${r.qt?' · '+r.qt:''}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--dim)">合約總額</div>
+            <div class="amint" style="font-size:16px">${r.total>0?fmtHKD(r.total):'—'}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:var(--bg);border-radius:8px;padding:10px;border:1px solid ${depOverdue?'rgba(255,122,122,0.4)':depOK?'rgba(205,255,216,0.2)':'var(--border)'}">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:6px">DEPOSIT</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="amint">${r.depAmount>0?fmtHKD(r.depAmount):'—'}</div>
+              <span class="badge ${depOK?'badge-mint':'badge-amber'}">${depOK?'🟢 已收':'🟡 待收'}</span>
+            </div>
+            ${r.depInv?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:4px">${r.depInv}</div>`:''}
+            ${r.depDueDate?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:${depOverdue?'var(--red)':'var(--dim)'};margin-top:4px">⏰ ${r.depDueDate}${depOverdue?' (逾期)':''}</div>`:''}
+            ${r.depReceivedDate&&depOK?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px">收款: ${r.depReceivedDate} · ${r.depAcct}</div>`:''}
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;border:1px solid ${balOverdue?'rgba(255,122,122,0.4)':balOK?'rgba(205,255,216,0.2)':'var(--border)'}">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:6px">BALANCE</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="amint">${r.balAmount>0?fmtHKD(r.balAmount):'—'}</div>
+              <span class="badge ${balOK?'badge-mint':'badge-amber'}">${balOK?'🟢 已收':'🟡 待收'}</span>
+            </div>
+            ${r.balInv?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:4px">${r.balInv}</div>`:''}
+            ${r.balDueDate?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:${balOverdue?'var(--red)':'var(--dim)'};margin-top:4px">⏰ ${r.balDueDate}${balOverdue?' (逾期)':''}</div>`:''}
+            ${r.balReceivedDate&&balOK?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px">收款: ${r.balReceivedDate} · ${r.balAcct}</div>`:''}
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+          <div style="font-size:12px;color:var(--dim)">${r.note||''}</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-edit-sm" onclick="openEditIncome('${r.id}')">編輯</button>
+            <button class="btn-del-sm" onclick="deleteIncome('${r.id}')">刪除</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('')
+    :empty('💰','未有收入記錄');
+
+  // Vendor list
+  const vRecs=D.vendors.filter(r=>r.projectId===id).sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('pd-vendor-list').innerHTML=vRecs.length
+    ?vRecs.map(r=>{
+      const depOK=r.depStatus==='已付'; const balOK=r.balStatus==='已付';
+      const today=new Date().toISOString().slice(0,10);
+      const depOverdue=r.depDeadline&&r.depDeadline<today&&!depOK;
+      const balOverdue=r.balDeadline&&r.balDeadline<today&&!balOK;
+      return `<div style="background:var(--s2);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <div style="font-weight:600;font-size:14px">${r.name}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:3px">${r.type}${r.qt?' · '+r.qt:''}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--dim)">總額</div>
+            <div class="amred" style="font-size:16px">${r.total>0?fmtHKD(r.total):'—'}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:var(--bg);border-radius:8px;padding:10px;border:1px solid ${depOverdue?'rgba(255,122,122,0.4)':depOK?'rgba(205,255,216,0.2)':'var(--border)'}">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:6px">DEPOSIT</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="amred">${r.depAmount>0?fmtHKD(r.depAmount):'—'}</div>
+              <span class="badge ${depOK?'badge-mint':'badge-red'}">${depOK?'🟢 已付':'🔴 待付'}</span>
+            </div>
+            ${r.depInv?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:4px">${r.depInv}</div>`:''}
+            ${r.depDeadline?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:${depOverdue?'var(--red)':'var(--dim)'};margin-top:4px">⏰ ${r.depDeadline}${depOverdue?' (逾期)':''}</div>`:''}
+            ${r.depDate&&depOK?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px">付款: ${r.depDate}</div>`:''}
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;border:1px solid ${balOverdue?'rgba(255,122,122,0.4)':balOK?'rgba(205,255,216,0.2)':'var(--border)'}">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:6px">BALANCE</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="amred">${r.balAmount>0?fmtHKD(r.balAmount):'—'}</div>
+              <span class="badge ${balOK?'badge-mint':'badge-red'}">${balOK?'🟢 已付':'🔴 待付'}</span>
+            </div>
+            ${r.balInv?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:4px">${r.balInv}</div>`:''}
+            ${r.balDeadline?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:${balOverdue?'var(--red)':'var(--dim)'};margin-top:4px">⏰ ${r.balDeadline}${balOverdue?' (逾期)':''}</div>`:''}
+            ${r.balDate&&balOK?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px">付款: ${r.balDate}</div>`:''}
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+          <div style="font-size:12px;color:var(--dim)">${r.note||''}</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-edit-sm" onclick="openEditVendor('${r.id}')">編輯</button>
+            <button class="btn-del-sm" onclick="deleteVendor('${r.id}')">刪除</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('')
+    :empty('🤝','未有 Vendor 記錄');
+
+  // Misc list
+  const mRecs=D.projectExpenses.filter(r=>r.projectId===id).sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('pd-misc-list').innerHTML=mRecs.length
+    ?`<table class="tbl"><thead><tr><th>日期</th><th>類別</th><th>付款</th><th>金額</th><th>備註</th><th></th></tr></thead><tbody>`+
+      mRecs.map(r=>`<tr>
+        <td class="datec">${r.date}</td>
+        <td><span class="badge badge-dim">${catDetail(r.category)}</span></td>
+        <td style="font-size:11px;color:var(--dim)">${r.payment}</td>
+        <td class="amred">${fmtHKD(r.amount)}</td>
+        <td class="notec" title="${r.note}">${r.note||'—'}</td>
+        <td><button class="btn-del-sm" onclick="deleteMisc('${r.id}')">刪除</button></td>
+      </tr>`).join('')+`</tbody></table>`
+    :empty('🧾','未有雜費記錄');
+}
+
+async function deleteProject(id){
+  if(!confirm('確認刪除此 Project？相關收入及支出記錄不會刪除。')) return;
+  setSyncStatus('busy','⟳ 刪除中...');
+  const rDP=await apiCall({action:'deleteProject',id});
+  if(rDP.success){ D.projects=D.projects.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); renderProjects(); renderOverview(); }
+  else setSyncStatus('err','✕ 失敗');
+}
+
+// ── INCOME ──
+function addIncome(){
+  const client=document.getElementById('in-client').value.trim();
+  if(!client){ alert('請填寫客戶名稱'); return; }
+  const row={ 
+    id:Date.now(), 
+    projectId:document.getElementById('in-project').value,
+    client,
+    type:document.getElementById('in-type').value,
+    qt:document.getElementById('in-qt').value.trim(),
+    total:parseFloat(document.getElementById('in-total').value||0),
+    depInv:document.getElementById('in-dep-inv').value.trim(),
+    depAmount:parseFloat(document.getElementById('in-dep-amount').value||0),
+    depDueDate:document.getElementById('in-dep-duedate').value,
+    depStatus:document.getElementById('in-dep-status').value,
+    depReceivedDate:document.getElementById('in-dep-received').value,
+    depAcct:document.getElementById('in-dep-acct').value,
+    balInv:document.getElementById('in-bal-inv').value.trim(),
+    balAmount:parseFloat(document.getElementById('in-bal-amount').value||0),
+    balDueDate:document.getElementById('in-bal-duedate').value,
+    balStatus:document.getElementById('in-bal-status').value,
+    balReceivedDate:document.getElementById('in-bal-received').value,
+    balAcct:document.getElementById('in-bal-acct').value,
+    preinc:document.getElementById('in-preinc').value,
+    note:document.getElementById('in-note').value.trim()
+  };
+  const btn=document.getElementById('btnAddIn');
+  btn.disabled=true; btn.textContent='儲存中...';
+  setSyncStatus('busy','⟳ 儲存中...');
+  apiCall({action:'addIncome',data:JSON.stringify(row)}).then(r=>{
+    if(r.success){ D.income.push(normalizeIncome(row)); setSyncStatus('ok','● 已同步'); clearInForm(); populateInFilters(); renderIncome(); renderOverview(); }
+    else { setSyncStatus('err','✕ 失敗'); alert('儲存失敗'); }
+    btn.disabled=false; btn.textContent='確認加入';
+  }).catch(()=>{ setSyncStatus('err','✕ 錯誤'); btn.disabled=false; btn.textContent='確認加入'; });
+}
+
+
+function onProjectSelect(){
+  const pid = document.getElementById('in-project').value;
+  if(!pid) return;
+  const p = D.projects.find(x=>x.id===pid);
+  if(!p) return;
+  // Auto-fill client name
+  if(!document.getElementById('in-client').value) {
+    document.getElementById('in-client').value = p.client;
+  }
+  // Auto-fill QT No.
+  if(p.qt) document.getElementById('in-qt').value = p.qt;
+}
+
+function clearInForm(){ ['in-client','in-qt','in-total','in-dep-inv','in-dep-amount','in-dep-duedate','in-dep-received','in-bal-inv','in-bal-amount','in-bal-duedate','in-bal-received','in-note'].forEach(i=>{ const el=document.getElementById(i); if(el) el.value=''; }); }
+
+async function deleteIncome(id){
+  if(!confirm('確認刪除？')) return;
+  setSyncStatus('busy','⟳ 刪除中...');
+  const rDI=await apiCall({action:'deleteIncome',id});
+  if(rDI.success){ D.income=D.income.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); populateInFilters(); renderIncome(); renderOverview(); if(activeProjId) renderProjDetail(); }
+  else setSyncStatus('err','✕ 失敗');
+}
+
+function openEditIncome(id){
+  const r=D.income.find(x=>x.id===id); if(!r) return;
+  editingIncomeId=id;
+  document.getElementById('ei-client').value=r.client||'';
+  populateProjectSelect('ei-project',r.projectId);
+  document.getElementById('ei-type').value=r.type||'顧問服務費';
+  document.getElementById('ei-qt').value=r.qt||'';
+  document.getElementById('ei-total').value=r.total||'';
+  document.getElementById('ei-preinc').value=r.preinc||'否';
+  document.getElementById('ei-dep-inv').value=r.depInv||'';
+  document.getElementById('ei-dep-amount').value=r.depAmount||'';
+  document.getElementById('ei-dep-duedate').value=r.depDueDate||'';
+  document.getElementById('ei-dep-status').value=r.depStatus||'待收款';
+  document.getElementById('ei-dep-received').value=r.depReceivedDate||'';
+  document.getElementById('ei-dep-acct').value=r.depAcct||'Hang Seng';
+  document.getElementById('ei-bal-inv').value=r.balInv||'';
+  document.getElementById('ei-bal-amount').value=r.balAmount||'';
+  document.getElementById('ei-bal-duedate').value=r.balDueDate||'';
+  document.getElementById('ei-bal-status').value=r.balStatus||'待收款';
+  document.getElementById('ei-bal-received').value=r.balReceivedDate||'';
+  document.getElementById('ei-bal-acct').value=r.balAcct||'Hang Seng';
+  document.getElementById('ei-note').value=r.note||'';
+  openModal('modalEditIncome');
+}
+
+async function saveEditIncome(){
+  const id=editingIncomeId;
+  const r=D.income.find(x=>x.id===id);
+  const updated={ 
+    id, projectId:document.getElementById('ei-project').value,
+    client:document.getElementById('ei-client').value.trim(),
+    type:document.getElementById('ei-type').value,
+    qt:document.getElementById('ei-qt').value.trim(),
+    total:parseFloat(document.getElementById('ei-total').value||0),
+    depInv:document.getElementById('ei-dep-inv').value.trim(),
+    depAmount:parseFloat(document.getElementById('ei-dep-amount').value||0),
+    depDueDate:document.getElementById('ei-dep-duedate').value,
+    depStatus:document.getElementById('ei-dep-status').value,
+    depReceivedDate:document.getElementById('ei-dep-received').value,
+    depAcct:document.getElementById('ei-dep-acct').value,
+    balInv:document.getElementById('ei-bal-inv').value.trim(),
+    balAmount:parseFloat(document.getElementById('ei-bal-amount').value||0),
+    balDueDate:document.getElementById('ei-bal-duedate').value,
+    balStatus:document.getElementById('ei-bal-status').value,
+    balReceivedDate:document.getElementById('ei-bal-received').value,
+    balAcct:document.getElementById('ei-bal-acct').value,
+    preinc:document.getElementById('ei-preinc').value,
+    note:document.getElementById('ei-note').value.trim()
+  };
+  const btn=document.getElementById('btnSaveEI'); btn.disabled=true; btn.textContent='儲存中...';
+  setSyncStatus('busy','⟳ 儲存中...');
+  const resEI=await apiCall({action:'editIncome',id,data:JSON.stringify(updated)});
+  if(resEI.success){ const idx=D.income.findIndex(x=>x.id===id); if(idx>-1) D.income[idx]=updated; setSyncStatus('ok','● 已同步'); closeModal('modalEditIncome'); populateInFilters(); renderIncome(); renderOverview(); }
+  else { setSyncStatus('err','✕ 失敗'); alert('儲存失敗'); }
+  btn.disabled=false; btn.textContent='儲存更改';
+}
+
+function renderIncome(){
+  const fc=document.getElementById('in-f-client').value;
+  const fs=document.getElementById('in-f-status').value;
+  let recs=[...D.income].filter(r=>{
+    if(fc&&r.client!==fc) return false;
+    if(fs==='待收款') return r.depStatus!=='已收款'||r.balStatus!=='已收款';
+    if(fs==='已收款') return r.depStatus==='已收款'&&r.balStatus==='已收款';
+    return true;
+  });
+  const container=document.getElementById('inCards');
+  if(!recs.length){ container.innerHTML=empty('💰','尚未有收入記錄'); return; }
+  const today=new Date().toISOString().slice(0,10);
+  container.innerHTML=recs.map(r=>{
+    const depOK=r.depStatus==='已收款'; const balOK=r.balStatus==='已收款';
+    const depOverdue=r.depDueDate&&r.depDueDate<today&&!depOK;
+    const balOverdue=r.balDueDate&&r.balDueDate<today&&!balOK;
+    const total=r.depAmount+r.balAmount;
+    const received=(depOK?r.depAmount:0)+(balOK?r.balAmount:0);
+    return `<div style="background:var(--s1);border:1px solid var(--border2);border-radius:14px;padding:18px 20px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+        <div>
+          <div style="font-weight:600;font-size:15px">${r.client}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:4px">${projName(r.projectId)}${r.type?' · '+r.type:''}${r.qt?' · '+r.qt:''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">合約總額 / 已收</div>
+          <div><span class="amint" style="font-size:16px">${r.total>0?fmtHKD(r.total):fmtHKD(total)}</span> <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--dim)">/ ${fmtHKD(received)}</span></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="background:var(--s2);border-radius:8px;padding:12px;border:1px solid ${depOverdue?'rgba(255,122,122,0.4)':depOK?'rgba(205,255,216,0.2)':'var(--border)'}">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:8px">DEPOSIT</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="amint" style="font-size:14px">${r.depAmount>0?fmtHKD(r.depAmount):'—'}</div>
+            <span class="badge ${depOK?'badge-mint':'badge-amber'}">${depOK?'🟢 已收':'🟡 待收'}</span>
+          </div>
+          ${r.depInv?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:6px">${r.depInv}</div>`:''}
+          ${r.depDueDate?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:${depOverdue?'var(--red)':'var(--dim)'};margin-top:4px">⏰ ${r.depDueDate}${depOverdue?' (逾期)':''}</div>`:''}
+          ${r.depReceivedDate&&depOK?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--mint);margin-top:4px">✓ ${r.depReceivedDate} · ${r.depAcct}</div>`:''}
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:12px;border:1px solid ${balOverdue?'rgba(255,122,122,0.4)':balOK?'rgba(205,255,216,0.2)':'var(--border)'}">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:8px">BALANCE</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="amint" style="font-size:14px">${r.balAmount>0?fmtHKD(r.balAmount):'—'}</div>
+            <span class="badge ${balOK?'badge-mint':'badge-amber'}">${balOK?'🟢 已收':'🟡 待收'}</span>
+          </div>
+          ${r.balInv?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:6px">${r.balInv}</div>`:''}
+          ${r.balDueDate?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:${balOverdue?'var(--red)':'var(--dim)'};margin-top:4px">⏰ ${r.balDueDate}${balOverdue?' (逾期)':''}</div>`:''}
+          ${r.balReceivedDate&&balOK?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--mint);margin-top:4px">✓ ${r.balReceivedDate} · ${r.balAcct}</div>`:''}
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:12px;color:var(--dim)">${r.note||''}</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-edit-sm" onclick="openEditIncome('${r.id}')">編輯</button>
+          <button class="btn-del-sm" onclick="deleteIncome('${r.id}')">刪除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── OPS EXPENSE ──
+function addOpsExpense(){
+  const date=document.getElementById('ops-date').value;
+  const amount=parseFloat(document.getElementById('ops-amount').value);
+  if(!date||!amount){ alert('請填寫日期及金額'); return; }
+  const row={ id:Date.now(), date, amount, category:document.getElementById('ops-cat').value, payment:document.getElementById('ops-pay').value, receipt:document.getElementById('ops-rec').value.trim(), preinc:document.getElementById('ops-preinc').value, note:document.getElementById('ops-note').value.trim() };
+  const btn=document.getElementById('btnAddOps'); btn.disabled=true; btn.textContent='儲存中...';
+  setSyncStatus('busy','⟳ 儲存中...');
+  apiCall({action:'addOpsExpense',data:JSON.stringify(row)}).then(r=>{
+    if(r.success){ D.opsExpenses.push(normalizeOps(row)); setSyncStatus('ok','● 已同步'); clearOpsForm(); populateOpsFilter(); renderOps(); renderOverview(); }
+    else { setSyncStatus('err','✕ 失敗'); alert('儲存失敗'); }
+    btn.disabled=false; btn.textContent='確認加入';
+  }).catch(()=>{ setSyncStatus('err','✕ 錯誤'); btn.disabled=false; btn.textContent='確認加入'; });
+}
+
+function clearOpsForm(){ ['ops-date','ops-amount','ops-rec','ops-note'].forEach(i=>document.getElementById(i).value=''); document.getElementById('ops-date').value=new Date().toISOString().slice(0,10); }
+
+async function deleteOpsExpense(id){
+  if(!confirm('確認刪除？')) return;
+  setSyncStatus('busy','⟳ 刪除中...');
+  const rDO=await apiCall({action:'deleteOpsExpense',id});
+  if(rDO.success){ D.opsExpenses=D.opsExpenses.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); populateOpsFilter(); renderOps(); renderOverview(); }
+  else setSyncStatus('err','✕ 失敗');
+}
+
+function openEditOps(id){
+  const r=D.opsExpenses.find(x=>x.id===id); if(!r) return;
+  editingOpsId=id;
+  document.getElementById('eo-date').value=r.date;
+  document.getElementById('eo-amount').value=r.amount;
+  document.getElementById('eo-cat').value=r.category;
+  document.getElementById('eo-pay').value=r.payment;
+  document.getElementById('eo-rec').value=r.receipt||'';
+  document.getElementById('eo-preinc').value=r.preinc||'否';
+  document.getElementById('eo-note').value=r.note||'';
+  openModal('modalEditOps');
+}
+
+async function saveEditOps(){
+  const id=editingOpsId;
+  const updated={ id, date:document.getElementById('eo-date').value, amount:parseFloat(document.getElementById('eo-amount').value), category:document.getElementById('eo-cat').value, payment:document.getElementById('eo-pay').value, receipt:document.getElementById('eo-rec').value.trim(), preinc:document.getElementById('eo-preinc').value, note:document.getElementById('eo-note').value.trim() };
+  const btn=document.getElementById('btnSaveEO'); btn.disabled=true; btn.textContent='儲存中...';
+  setSyncStatus('busy','⟳ 儲存中...');
+  const res3=await apiCall({action:'editOpsExpense',id,data:JSON.stringify(updated)});
+  if(res3.success){ const idx=D.opsExpenses.findIndex(x=>x.id===id); if(idx>-1) D.opsExpenses[idx]=updated; setSyncStatus('ok','● 已同步'); closeModal('modalEditOps'); populateOpsFilter(); renderOps(); renderOverview(); }
+  else { setSyncStatus('err','✕ 失敗'); alert('儲存失敗'); }
+  btn.disabled=false; btn.textContent='儲存更改';
+}
+
+function renderOps(){
+  const fm=document.getElementById('ops-f-month').value;
+  const fc=document.getElementById('ops-f-cat').value;
+  const fp=document.getElementById('ops-f-pay').value;
+  let recs=[...D.opsExpenses].filter(r=>(!fm||r.date.startsWith(fm))&&(!fc||r.category.startsWith(fc))&&(!fp||r.payment===fp)).sort((a,b)=>b.date.localeCompare(a.date));
+  const tbody=document.getElementById('opsTbody');
+  if(!recs.length){ tbody.innerHTML=`<tr><td colspan="6">${empty('🧾','尚未有支出記錄')}</td></tr>`; return; }
+  const groups={};
+  recs.forEach(r=>{ const k=monthKey(r.date); if(!groups[k]) groups[k]=[]; groups[k].push(r); });
+  let html='';
+  Object.keys(groups).sort().reverse().forEach(k=>{
+    const grp=groups[k], total=grp.reduce((s,r)=>s+r.amount,0);
+    html+=`<tr class="mth-row"><td colspan="5">${monthLabel(grp[0].date)}</td><td class="mth-total amred">${fmtHKD(total)}</td></tr>`;
+    grp.forEach(r=>{ html+=`<tr>
+      <td class="datec">${r.date}</td>
+      <td><span class="badge badge-dim">${catShort(r.category)}</span><div style="font-size:10px;color:var(--dim);margin-top:2px">${catDetail(r.category)}${r.preinc==='是'?' <span class="badge badge-amber" style="font-size:9px">PRE-INC</span>':''}</div></td>
+      <td style="font-size:11px;color:var(--muted)">${r.payment}</td>
+      <td class="amred">${fmtHKD(r.amount)}</td>
+      <td class="notec" title="${r.note}">${r.note||'—'}</td>
+      <td style="white-space:nowrap"><button class="btn-edit-sm" onclick="openEditOps('${r.id}')">編輯</button> <button class="btn-del-sm" onclick="deleteOpsExpense('${r.id}')">刪除</button></td>
+    </tr>`; });
+  });
+  tbody.innerHTML=html;
+}
+
+// ── VENDOR ──
+function openAddVendorModal(){ if(!activeProjId){ alert('請先選擇一個 Project'); return; } openModal('modalVendor'); }
+
+function saveVendor(){
+  const name=document.getElementById('v-name').value.trim();
+  if(!name){ alert('請填寫 Vendor 名稱'); return; }
+  const row={ 
+    id:Date.now(), projectId:activeProjId, name, 
+    type:document.getElementById('v-type').value, 
+    qt:document.getElementById('v-qt').value.trim(),
+    total:parseFloat(document.getElementById('v-total').value||0),
+    depInv:document.getElementById('v-dep-inv').value.trim(),
+    depAmount:parseFloat(document.getElementById('v-dep-amount').value||0),
+    depDeadline:document.getElementById('v-dep-deadline').value,
+    depStatus:document.getElementById('v-dep-status').value,
+    depDate:document.getElementById('v-dep-date').value,
+    depPay:document.getElementById('v-dep-pay').value,
+    balInv:document.getElementById('v-bal-inv').value.trim(),
+    balAmount:parseFloat(document.getElementById('v-bal-amount').value||0),
+    balDeadline:document.getElementById('v-bal-deadline').value,
+    balStatus:document.getElementById('v-bal-status').value,
+    balDate:document.getElementById('v-bal-date').value,
+    balPay:document.getElementById('v-bal-pay').value,
+    note:document.getElementById('v-note').value.trim()
+  };
+  const btn=document.getElementById('btnSaveV'); btn.disabled=true; btn.textContent='儲存中...';
+  setSyncStatus('busy','⟳ 儲存中...');
+  apiCall({action:'addVendor',data:JSON.stringify(row)}).then(r=>{
+    if(r.success){ D.vendors.push(normalizeVendor(row)); setSyncStatus('ok','● 已同步'); closeModal('modalVendor'); renderProjDetail(); renderProjects(); renderOverview(); ['v-name','v-qt','v-total','v-dep-inv','v-dep-amount','v-dep-deadline','v-dep-date','v-bal-inv','v-bal-amount','v-bal-deadline','v-bal-date','v-note'].forEach(i=>document.getElementById(i).value=''); }
+    else { setSyncStatus('err','✕ 失敗'); alert('儲存失敗'); }
+    btn.disabled=false; btn.textContent='儲存';
+  }).catch(()=>{ setSyncStatus('err','✕ 錯誤'); btn.disabled=false; btn.textContent='儲存'; });
+}
+
+async function deleteVendor(id){
+  if(!confirm('確認刪除？')) return;
+  setSyncStatus('busy','⟳ 刪除中...');
+  const rDV=await apiCall({action:'deleteVendor',id});
+  if(rDV.success){ D.vendors=D.vendors.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); renderProjDetail(); renderProjects(); renderOverview(); }
+  else setSyncStatus('err','✕ 失敗');
+}
+
+// ── MISC / PROJECT EXPENSE ──
+function openAddMiscModal(){ document.getElementById('m-date').value=new Date().toISOString().slice(0,10); openModal('modalMisc'); }
+
+function saveMisc(){
+  const amount=parseFloat(document.getElementById('m-amount').value);
+  const date=document.getElementById('m-date').value;
+  if(!amount||!date){ alert('請填寫日期及金額'); return; }
+  const row={ id:Date.now(), projectId:activeProjId, date, amount, category:document.getElementById('m-cat').value, payment:document.getElementById('m-pay').value, receipt:document.getElementById('m-rec').value.trim(), note:document.getElementById('m-note').value.trim() };
+  const btn=document.getElementById('btnSaveM'); btn.disabled=true; btn.textContent='儲存中...';
+  setSyncStatus('busy','⟳ 儲存中...');
+  apiCall({action:'addProjectExpense',data:JSON.stringify(row)}).then(r=>{
+    if(r.success){ D.projectExpenses.push(normalizePE(row)); setSyncStatus('ok','● 已同步'); closeModal('modalMisc'); renderProjDetail(); renderProjects(); renderOverview(); ['m-amount','m-rec','m-note'].forEach(i=>document.getElementById(i).value=''); }
+    else { setSyncStatus('err','✕ 失敗'); alert('儲存失敗'); }
+    btn.disabled=false; btn.textContent='儲存';
+  }).catch(()=>{ setSyncStatus('err','✕ 錯誤'); btn.disabled=false; btn.textContent='儲存'; });
+}
+
+async function deleteMisc(id){
+  if(!confirm('確認刪除？')) return;
+  setSyncStatus('busy','⟳ 刪除中...');
+  const rDPE=await apiCall({action:'deleteProjectExpense',id});
+  if(rDPE.success){ D.projectExpenses=D.projectExpenses.filter(x=>x.id!==id); setSyncStatus('ok','● 已同步'); renderProjDetail(); renderProjects(); renderOverview(); }
+  else setSyncStatus('err','✕ 失敗');
+}
+
+// ── REPORT ──
+function renderReport(){
+  const tI=D.income.reduce((s,r)=>s+(r.depAmount||0)+(r.balAmount||0),0);
+  const tE=D.vendors.reduce((s,r)=>s+r.amount,0)+D.projectExpenses.reduce((s,r)=>s+r.amount,0)+D.opsExpenses.reduce((s,r)=>s+r.amount,0);
+  const net=tI-tE;
+  const tax=net>0?(Math.min(net,2000000)*0.0825+Math.max(0,net-2000000)*0.165):0;
+  document.getElementById('rpt-inc').textContent=fmtHKD(tI);
+  document.getElementById('rpt-exp').textContent=fmtHKD(tE);
+  document.getElementById('rpt-net').textContent=fmtHKD(net);
+  document.getElementById('rpt-tax').textContent='預計利得稅: '+fmtHKD(tax);
+
+  // Expense breakdown
+  const cats={};
+  D.opsExpenses.forEach(r=>{ cats[r.category]=(cats[r.category]||0)+r.amount; });
+  D.vendors.forEach(r=>{ cats['第三方Vendor — '+r.type]=(cats['第三方Vendor — '+r.type]||0)+r.amount; });
+  D.projectExpenses.forEach(r=>{ cats[r.category]=(cats[r.category]||0)+r.amount; });
+  document.getElementById('rpt-exp-bk').innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).length
+    ?Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([n,a])=>`<div class="bk-row"><div class="bk-name">${n}</div><div class="bk-amt amred">${fmtHKD(a)}</div></div>`).join('')
+    :empty('📊','未有數據');
+
+  // Income breakdown
+  const cl={};
+  D.income.forEach(r=>{ cl[r.client]=(cl[r.client]||0)+(r.depAmount||0)+(r.balAmount||0); });
+  document.getElementById('rpt-inc-bk').innerHTML=Object.entries(cl).sort((a,b)=>b[1]-a[1]).length
+    ?Object.entries(cl).sort((a,b)=>b[1]-a[1]).map(([n,a])=>`<div class="bk-row"><div class="bk-name">${n}</div><div class="bk-amt amint">${fmtHKD(a)}</div></div>`).join('')
+    :empty('📊','未有數據');
+
+  // Project P&L
+  document.getElementById('rpt-proj-pnl').innerHTML=D.projects.length
+    ?D.projects.map(p=>{
+      const inc=D.income.filter(r=>r.projectId===p.id).reduce((s,r)=>s+r.amount,0);
+      const exp=(D.vendors.filter(r=>r.projectId===p.id).reduce((s,r)=>s+r.amount,0))+(D.projectExpenses.filter(r=>r.projectId===p.id).reduce((s,r)=>s+r.amount,0));
+      const n=inc-exp;
+      return `<div class="bk-row">
+        <div><div class="bk-name">${p.client} · ${p.name}</div><div style="font-size:10px;color:var(--dim);margin-top:2px">${statusBadge(p.status)}</div></div>
+        <div style="text-align:right">
+          <div class="bk-amt ${n>=0?'amint':'amred'}">${fmtHKD(n)}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--dim)">收 ${fmtHKD(inc)} / 支 ${fmtHKD(exp)}</div>
+        </div>
+      </div>`;
+    }).join('')
+    :empty('📊','未有 Project');
+
+  // Pre-inc
+  const pi=[...D.income.filter(r=>r.preinc==='是').map(r=>({...r,_t:'收入'})),...D.opsExpenses.filter(r=>r.preinc==='是').map(r=>({...r,_t:'支出'}))].sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('rpt-preinc').innerHTML=pi.length
+    ?pi.map(r=>`<div class="bk-row"><div><div class="bk-name">${r.date} · ${r._t==='收入'?r.client:catShort(r.category)}</div><div style="font-size:10px;color:var(--dim)">${r.note||''}</div></div><div class="bk-amt ${r._t==='收入'?'amint':'amred'}">${r._t==='支出'?'-':''}${fmtHKD(r.amount)}</div></div>`).join('')
+    :empty('📋','未有Pre-inc記錄');
+}
+
+// ── EXPORT ──
+function exportCSV(){
+  const rows=[['類型','日期','客戶','Project','詳細','金額(HKD)','單據編號','付款方式','Pre-inc','備註']];
+  D.income.forEach(r=>rows.push(['收入',r.date,r.client,projName(r.projectId),r.paymentType+' '+r.type,r.amount,r.invoice||'','Hang Seng',r.preinc,r.note||'']));
+  D.vendors.forEach(r=>rows.push(['Vendor支出',r.date,'',projName(r.projectId),r.name+' — '+r.type,-r.amount,r.invoice||'',r.payment||'','',r.note||'']));
+  D.projectExpenses.forEach(r=>rows.push(['Project雜費',r.date,'',projName(r.projectId),r.category,-r.amount,r.receipt||'',r.payment||'','',r.note||'']));
+  D.opsExpenses.forEach(r=>rows.push(['營運支出',r.date,'','',r.category,-r.amount,r.receipt||'',r.payment||'',r.preinc,r.note||'']));
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='FLUX_WORKS_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+}
+
+
+// ── EDIT VENDOR ──
+let editingVendorId = null;
+
+function openEditVendor(id) {
+  const r = D.vendors.find(x => x.id === id);
+  if (!r) return;
+  editingVendorId = id;
+  document.getElementById('ev-name').value      = r.name || '';
+  document.getElementById('ev-type').value      = r.type || '其他外判';
+  document.getElementById('ev-qt').value        = r.qt || '';
+  document.getElementById('ev-total').value     = r.total || '';
+  document.getElementById('ev-dep-inv').value   = r.depInv || '';
+  document.getElementById('ev-dep-amount').value= r.depAmount || '';
+  document.getElementById('ev-dep-deadline').value = r.depDeadline || '';
+  document.getElementById('ev-dep-status').value= r.depStatus || '待付';
+  document.getElementById('ev-dep-date').value  = r.depDate || '';
+  document.getElementById('ev-dep-pay').value   = r.depPay || 'Aspire';
+  document.getElementById('ev-bal-inv').value   = r.balInv || '';
+  document.getElementById('ev-bal-amount').value= r.balAmount || '';
+  document.getElementById('ev-bal-deadline').value = r.balDeadline || '';
+  document.getElementById('ev-bal-status').value= r.balStatus || '待付';
+  document.getElementById('ev-bal-date').value  = r.balDate || '';
+  document.getElementById('ev-bal-pay').value   = r.balPay || 'Aspire';
+  document.getElementById('ev-note').value      = r.note || '';
+  openModal('modalEditVendor');
+}
+
+async function saveEditVendor() {
+  const id = editingVendorId;
+  const r = D.vendors.find(x => x.id === id);
+  const updated = {
+    id,
+    projectId: r.projectId,
+    name:       document.getElementById('ev-name').value.trim(),
+    type:       document.getElementById('ev-type').value,
+    qt:         document.getElementById('ev-qt').value.trim(),
+    total:      parseFloat(document.getElementById('ev-total').value || 0),
+    depInv:     document.getElementById('ev-dep-inv').value.trim(),
+    depAmount:  parseFloat(document.getElementById('ev-dep-amount').value || 0),
+    depDeadline:document.getElementById('ev-dep-deadline').value,
+    depStatus:  document.getElementById('ev-dep-status').value,
+    depDate:    document.getElementById('ev-dep-date').value,
+    depPay:     document.getElementById('ev-dep-pay').value,
+    balInv:     document.getElementById('ev-bal-inv').value.trim(),
+    balAmount:  parseFloat(document.getElementById('ev-bal-amount').value || 0),
+    balDeadline:document.getElementById('ev-bal-deadline').value,
+    balStatus:  document.getElementById('ev-bal-status').value,
+    balDate:    document.getElementById('ev-bal-date').value,
+    balPay:     document.getElementById('ev-bal-pay').value,
+    note:       document.getElementById('ev-note').value.trim(),
+  };
+  const btn = document.getElementById('btnSaveEV');
+  btn.disabled = true; btn.textContent = '儲存中...';
+  setSyncStatus('busy', '⟳ 儲存中...');
+  try {
+    const resEV = await apiCall({ action: 'editVendor', id, data: JSON.stringify(updated) });
+    if (resEV.success) {
+      const idx = D.vendors.findIndex(x => x.id === id);
+      if (idx > -1) D.vendors[idx] = normalizeVendor(updated);
+      setSyncStatus('ok', '● 已同步');
+      closeModal('modalEditVendor');
+      renderProjDetail();
+      renderProjects();
+      renderOverview();
+    } else { setSyncStatus('err', '✕ 失敗'); alert('儲存失敗，請再試'); }
+  } catch(e) { setSyncStatus('err', '✕ 網絡錯誤'); alert('網絡錯誤，請再試'); }
+  btn.disabled = false; btn.textContent = '儲存更改';
+}
+
+// ── MODAL ──
+function openModal(id){ document.getElementById(id).classList.add('on'); }
+function closeModal(id){ document.getElementById(id).classList.remove('on'); }
+document.addEventListener('click',e=>{
+  ['modalVendor','modalMisc','modalEditIncome','modalEditOps'].forEach(id=>{
+    if(e.target===document.getElementById(id)) closeModal(id);
+  });
+});
+
+// ── CLOCK ──
+function updateClock(){
+  const now=new Date();
+  document.getElementById('dtMain').textContent=now.toLocaleDateString('zh-HK',{year:'numeric',month:'2-digit',day:'2-digit'})+' '+now.toLocaleTimeString('zh-HK',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── INIT ──
+async function initApp(){
+  document.getElementById('loadWrap').style.display='flex';
+  const today=new Date().toISOString().slice(0,10);
+  // Set default dates for forms that still have date fields
+  const opsDate=document.getElementById('ops-date');
+  if(opsDate) opsDate.value=today;
+  await loadAll();
+  populateProjectSelect('in-project');
+  populateInFilters();
+  renderOverview();
+  const lw=document.getElementById('loadWrap');
+  lw.classList.add('gone');
+  setTimeout(()=>lw.style.display='none',400);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  updateClock(); setInterval(updateClock,60000);
+  document.getElementById('loadWrap').style.display='none';
+  if(sessionStorage.getItem('fa')==='1'){
+    document.getElementById('loginWrap').style.display='none';
+    initApp();
+  }
+  document.getElementById('loginPw').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+});
+</script>
+<!-- EDIT VENDOR MODAL -->
+<div class="modal-bg" id="modalEditVendor">
+  <div class="modal">
+    <div class="modal-title">✏️ 編輯 Vendor 支出</div>
+    <div class="fg fg2">
+      <div class="f"><label>Vendor 名稱</label><input type="text" id="ev-name"></div>
+      <div class="f"><label>服務類型</label>
+        <select id="ev-type">
+          <option value="攝影／攝錄">攝影／攝錄</option>
+          <option value="設計外判">設計外判</option>
+          <option value="印刷製作">印刷製作</option>
+          <option value="活動製作">活動製作</option>
+          <option value="媒體採購">媒體採購</option>
+          <option value="PR服務">PR 服務</option>
+          <option value="其他外判">其他外判</option>
+        </select>
+      </div>
+      <div class="f"><label>Vendor Quotation No.</label><input type="text" id="ev-qt"></div>
+      <div class="f"><label>Vendor 總金額 (HKD)</label><input type="number" id="ev-total" min="0" step="0.01"></div>
+    </div>
+
+    <div style="background:var(--s2);border-radius:10px;padding:16px;margin:12px 0">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">DEPOSIT</div>
+      <div class="fg fg2">
+        <div class="f"><label>Deposit Invoice No.</label><input type="text" id="ev-dep-inv"></div>
+        <div class="f"><label>Deposit 金額 (HKD)</label><input type="number" id="ev-dep-amount" min="0" step="0.01"></div>
+        <div class="f"><label>付款 Deadline</label><input type="date" id="ev-dep-deadline"></div>
+        <div class="f"><label>付款狀態</label>
+          <select id="ev-dep-status">
+            <option value="待付">🔴 待付</option>
+            <option value="已付">🟢 已付</option>
+          </select>
+        </div>
+        <div class="f"><label>付款日期（已付時填）</label><input type="date" id="ev-dep-date"></div>
+        <div class="f"><label>付款方式</label>
+          <select id="ev-dep-pay">
+            <option value="Aspire">Aspire</option>
+            <option value="其他信用卡">其他信用卡</option>
+            <option value="轉數快">轉數快</option>
+            <option value="Hang Seng">Hang Seng</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--s2);border-radius:10px;padding:16px;margin:12px 0">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">BALANCE</div>
+      <div class="fg fg2">
+        <div class="f"><label>Balance Invoice No.</label><input type="text" id="ev-bal-inv"></div>
+        <div class="f"><label>Balance 金額 (HKD)</label><input type="number" id="ev-bal-amount" min="0" step="0.01"></div>
+        <div class="f"><label>付款 Deadline</label><input type="date" id="ev-bal-deadline"></div>
+        <div class="f"><label>付款狀態</label>
+          <select id="ev-bal-status">
+            <option value="待付">🔴 待付</option>
+            <option value="已付">🟢 已付</option>
+          </select>
+        </div>
+        <div class="f"><label>付款日期（已付時填）</label><input type="date" id="ev-bal-date"></div>
+        <div class="f"><label>付款方式</label>
+          <select id="ev-bal-pay">
+            <option value="Aspire">Aspire</option>
+            <option value="其他信用卡">其他信用卡</option>
+            <option value="轉數快">轉數快</option>
+            <option value="Hang Seng">Hang Seng</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg fg2">
+      <div class="f full"><label>備註</label><textarea id="ev-note"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modalEditVendor')">取消</button>
+      <button class="btn btn-primary" id="btnSaveEV" onclick="saveEditVendor()">儲存更改</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
