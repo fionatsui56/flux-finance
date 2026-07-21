@@ -1254,7 +1254,7 @@ function onProjectSelect(){
   if(p.qt) document.getElementById('in-qt').value = p.qt;
 }
 
-function clearInForm(){ ['in-date','in-amount','in-client','in-qt','in-inv','in-note'].forEach(i=>document.getElementById(i).value=''); document.getElementById('in-date').value=new Date().toISOString().slice(0,10); }
+function clearInForm(){ ['in-client','in-qt','in-total','in-dep-inv','in-dep-amount','in-dep-duedate','in-dep-received','in-bal-inv','in-bal-amount','in-bal-duedate','in-bal-received','in-note'].forEach(i=>{ const el=document.getElementById(i); if(el) el.value=''; }); }
 
 async function deleteIncome(id){
   if(!confirm('確認刪除？')) return;
@@ -1676,10 +1676,12 @@ function updateClock(){
 async function initApp(){
   document.getElementById('loadWrap').style.display='flex';
   const today=new Date().toISOString().slice(0,10);
-  document.getElementById('in-date').value=today;
-  document.getElementById('ops-date').value=today;
+  // Set default dates for forms that still have date fields
+  const opsDate=document.getElementById('ops-date');
+  if(opsDate) opsDate.value=today;
   await loadAll();
   populateProjectSelect('in-project');
+  populateInFilters();
   renderOverview();
   const lw=document.getElementById('loadWrap');
   lw.classList.add('gone');
