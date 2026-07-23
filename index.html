@@ -824,8 +824,18 @@ function setSyncStatus(state,msg){ const el=document.getElementById('syncPill');
 async function apiCall(params) {
   const url=new URL(API);
   Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
-  const res=await fetch(url.toString());
-  return res.json();
+  const res=await fetch(url.toString(), {
+    redirect: 'follow',
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch(e) {
+    // If response is HTML (redirect to login page), throw error
+    throw new Error('Apps Script returned non-JSON response');
+  }
 }
 
 async function loadAll() {
