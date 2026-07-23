@@ -821,26 +821,28 @@ function doLogin() {
 // ── SYNC ──
 function setSyncStatus(state,msg){ const el=document.getElementById('syncPill'); el.className='sync-pill sync-'+state; el.textContent=msg; }
 
-async function apiCall(params) {
-  const url = new URL(API);
-  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, String(v)));
-  const res = await fetch(url.toString(), {
-    method: 'GET',
-    credentials: 'omit',
-    redirect: 'follow'
+function apiCall(params) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'callback';
+    const url = new URL(API);
+    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, String(v)));
+    url.searchParams.set('callback', cbName);
+
+    window[cbName] = function(data) {
+      delete window[cbName];
+      document.head.removeChild(script);
+      resolve(data);
+    };
+
+    const script = document.createElement('script');
+    script.src = url.toString();
+    script.onerror = () => {
+      delete window[cbName];
+      document.head.removeChild(script);
+      reject(new Error('JSONP request failed'));
+    };
+    document.head.appendChild(script);
   });
-  const text = await res.text();
-  // Apps Script HtmlService returns text/html but body is JSON
-  const clean = text.replace(/<[^>]*>/g, '').trim();
-  try {
-    return JSON.parse(clean);
-  } catch(e) {
-    try {
-      return JSON.parse(text);
-    } catch(e2) {
-      throw new Error('Invalid response: ' + text.slice(0, 100));
-    }
-  }
 }
 
 async function loadAll() {
