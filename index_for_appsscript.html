@@ -821,28 +821,47 @@ function doLogin() {
 // ── SYNC ──
 function setSyncStatus(state,msg){ const el=document.getElementById('syncPill'); el.className='sync-pill sync-'+state; el.textContent=msg; }
 
+function waitForGoogle() {
+  return new Promise(function(resolve) {
+    var attempts = 0;
+    function check() {
+      attempts++;
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        resolve();
+      } else if (attempts < 50) {
+        setTimeout(check, 100);
+      } else {
+        resolve(); // proceed anyway after 5 seconds
+      }
+    }
+    check();
+  });
+}
+
 function apiCall(params) {
-  return new Promise(function(resolve, reject) {
-    var action = params.action;
-    var run = google.script.run;
-    var h = run.withSuccessHandler(resolve).withFailureHandler(reject);
-    if (action === 'getAll')               { h.apiGetAll(); }
-    else if (action === 'addProject')      { h.apiAddProject(params.data); }
-    else if (action === 'editProject')     { h.apiEditProject(params.id, params.data); }
-    else if (action === 'deleteProject')   { h.apiDeleteProject(params.id); }
-    else if (action === 'addIncome')       { h.apiAddIncome(params.data); }
-    else if (action === 'editIncome')      { h.apiEditIncome(params.id, params.data); }
-    else if (action === 'deleteIncome')    { h.apiDeleteIncome(params.id); }
-    else if (action === 'addVendor')       { h.apiAddVendor(params.data); }
-    else if (action === 'editVendor')      { h.apiEditVendor(params.id, params.data); }
-    else if (action === 'deleteVendor')    { h.apiDeleteVendor(params.id); }
-    else if (action === 'addProjectExpense')    { h.apiAddProjectExpense(params.data); }
-    else if (action === 'editProjectExpense')   { h.apiEditProjectExpense(params.id, params.data); }
-    else if (action === 'deleteProjectExpense') { h.apiDeleteProjectExpense(params.id); }
-    else if (action === 'addOpsExpense')   { h.apiAddOpsExpense(params.data); }
-    else if (action === 'editOpsExpense')  { h.apiEditOpsExpense(params.id, params.data); }
-    else if (action === 'deleteOpsExpense'){ h.apiDeleteOpsExpense(params.id); }
-    else { reject(new Error('Unknown action: ' + action)); }
+  return waitForGoogle().then(function() {
+    return new Promise(function(resolve, reject) {
+      var action = params.action;
+      var run = google.script.run;
+      var h = run.withSuccessHandler(resolve).withFailureHandler(reject);
+      if (action === 'getAll')               { h.apiGetAll(); }
+      else if (action === 'addProject')      { h.apiAddProject(params.data); }
+      else if (action === 'editProject')     { h.apiEditProject(params.id, params.data); }
+      else if (action === 'deleteProject')   { h.apiDeleteProject(params.id); }
+      else if (action === 'addIncome')       { h.apiAddIncome(params.data); }
+      else if (action === 'editIncome')      { h.apiEditIncome(params.id, params.data); }
+      else if (action === 'deleteIncome')    { h.apiDeleteIncome(params.id); }
+      else if (action === 'addVendor')       { h.apiAddVendor(params.data); }
+      else if (action === 'editVendor')      { h.apiEditVendor(params.id, params.data); }
+      else if (action === 'deleteVendor')    { h.apiDeleteVendor(params.id); }
+      else if (action === 'addProjectExpense')    { h.apiAddProjectExpense(params.data); }
+      else if (action === 'editProjectExpense')   { h.apiEditProjectExpense(params.id, params.data); }
+      else if (action === 'deleteProjectExpense') { h.apiDeleteProjectExpense(params.id); }
+      else if (action === 'addOpsExpense')   { h.apiAddOpsExpense(params.data); }
+      else if (action === 'editOpsExpense')  { h.apiEditOpsExpense(params.id, params.data); }
+      else if (action === 'deleteOpsExpense'){ h.apiDeleteOpsExpense(params.id); }
+      else { reject(new Error('Unknown action: ' + action)); }
+    });
   });
 }
 
